@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="家用監視器">
+  <meta name="theme-color" content="#000000">
+  <meta name="referrer" content="no-referrer">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>家用監視器</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-home">
+  <div class="home">
+    <h1>📹 家用監視器</h1>
+    <p class="note">用 iPhone 當監視鏡頭，其他 iPhone／iPad 掃描 QR Code 就能即時監看。</p>
+
+    <div class="choices">
+      <a class="choice" href="camera.html" id="goCamera">
+        <b>📷 這台當鏡頭</b>
+        <span id="camDesc">開啟相機，畫面上會出現讓其他裝置掃描的 QR Code。</span>
+      </a>
+      <a class="choice hidden" href="viewer.html" id="goViewer">
+        <b>📺 繼續監看</b>
+        <span>回到上次掃描過的房間。</span>
+      </a>
+    </div>
+
+    <section>
+      <h2>怎麼使用</h2>
+      <ol>
+        <li>在要當鏡頭的 iPhone 上用 Safari 開這個網頁，點「這台當鏡頭」並允許相機與麥克風。</li>
+        <li>用其他 iPhone／iPad 的「相機」App 掃描畫面上的「📺 監看」QR Code。</li>
+        <li>要再加一支鏡頭，就用那支 iPhone 掃描「📷 加入其他鏡頭」QR Code。</li>
+      </ol>
+    </section>
+    <section>
+      <h2>注意事項</h2>
+      <ul>
+        <li>當鏡頭的 iPhone 必須<strong>停在拍攝頁面、不能鎖定螢幕</strong>，請接上充電器，並把「自動鎖定」設為永不。</li>
+        <li>省電可以用「🌙 黑畫面」，畫面會變黑，但仍在拍攝。</li>
+        <li>移動偵測提醒只有在監看頁面開著、在畫面上時才會響。</li>
+        <li>影像只在裝置之間直接傳送，不會上傳到雲端；只有掃過 QR Code 的裝置才能觀看。</li>
+      </ul>
+    </section>
+    <p class="small" style="text-align:center;margin-top:18px">小技巧：在 Safari 點「分享 › 加入主畫面」，之後就能像 App 一樣開啟。</p>
+  </div>
+  <script>
+    (function () {
+      function get(n) { try { return JSON.parse(localStorage.getItem('ipcam.' + n)); } catch (e) { return null; } }
+      var ok = function (k) { return typeof k === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(k); };
+      var vk = get('view.key');
+      if (ok(vk)) {
+        var v = document.getElementById('goViewer');
+        v.href = 'viewer.html#k=' + vk;
+        v.classList.remove('hidden');
+      }
+      var ck = get('cam.key');
+      if (ok(ck)) {
+        document.getElementById('goCamera').href = 'camera.html#k=' + ck;
+        document.getElementById('camDesc').textContent = '回到上次的房間繼續拍攝（舊的 QR Code 仍然有效）。';
+      }
+    })();
+  </script>
+</body>
+</html>

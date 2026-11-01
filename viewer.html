@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="監看">
+  <meta name="theme-color" content="#000000">
+  <meta name="referrer" content="no-referrer">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>監看｜家用監視器</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-viewer">
+  <header class="vbar">
+    <div class="chip" id="status"><span class="dot wait"></span><span id="statusText">準備中</span></div>
+    <div class="spacer"></div>
+    <button type="button" class="icon" id="btnSound" title="警示音開關">🔔</button>
+    <button type="button" class="icon" id="btnMotion" title="移動偵測設定">🏃</button>
+    <button type="button" class="icon" id="btnLog" title="移動紀錄">📋<span class="badge hidden" id="logBadge">0</span></button>
+    <button type="button" class="icon" id="btnShare" title="分享給其他監看裝置">▦</button>
+  </header>
+
+  <main id="grid" class="grid" data-count="0"></main>
+  <div id="empty" class="empty">
+    <div class="spinner"></div>
+    <p id="emptyText">正在尋找鏡頭…</p>
+    <p class="small">請確認當鏡頭的 iPhone 已開啟拍攝頁面，並停留在畫面上。</p>
+  </div>
+
+  <!-- 開始畫面 -->
+  <div id="startOverlay" class="overlay">
+    <div class="card">
+      <h1>📺 監看模式</h1>
+      <div id="noKey" class="hidden">
+        <p class="error">找不到房間資訊。</p>
+        <p>請用 iPhone／iPad 的「相機」App 掃描鏡頭畫面上的「📺 監看」QR Code 來開啟。</p>
+      </div>
+      <div id="hasKey">
+        <ul class="tips">
+          <li>點一下畫面可以放大單一鏡頭，再點一下回到分割畫面。</li>
+          <li>點畫面右下角的 🔇 可以聽聲音。</li>
+          <li>有動靜時會發出警示音並閃紅框（這個頁面必須開著，在畫面上）。</li>
+          <li>想長時間監看，請把這台裝置的「自動鎖定」設為永不，並接上充電器。</li>
+        </ul>
+        <button type="button" class="primary" id="btnStart">開始監看</button>
+      </div>
+      <p id="startError" class="error hidden"></p>
+      <p class="small"><a href="index.html">回首頁</a></p>
+    </div>
+  </div>
+
+  <!-- 移動偵測設定 -->
+  <div id="motionModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="motionTitle">
+    <div class="card">
+      <h2 id="motionTitle">移動偵測</h2>
+      <label class="switch"><input type="checkbox" id="chkMotion"> 啟用移動偵測</label>
+      <label class="switch"><input type="checkbox" id="chkSound"> 偵測到時發出警示音</label>
+      <label class="field">靈敏度：<b id="sensVal">5</b>
+        <input type="range" id="rngSens" min="1" max="10" step="1">
+        <span class="range-labels"><span>低（大動作才提醒）</span><span>高（小變化也提醒）</span></span>
+      </label>
+      <p class="small">提醒後 10 秒內同一支鏡頭不會重複響。iPhone 開著靜音鍵時，iOS 16.4 以上仍會發出警示音；舊版請關閉靜音鍵。</p>
+      <div class="row">
+        <button type="button" id="btnTestBeep">測試警示音</button>
+        <button type="button" class="primary" data-close>完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 移動紀錄 -->
+  <div id="logModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="logTitle">
+    <div class="card">
+      <h2 id="logTitle">移動紀錄</h2>
+      <ul class="log" id="logList"></ul>
+      <div class="row">
+        <button type="button" id="btnClearLog">清除紀錄</button>
+        <button type="button" class="primary" data-close>完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分享 -->
+  <div id="shareModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+    <div class="card">
+      <h2 id="shareTitle">新增監看裝置</h2>
+      <div class="qr" id="qrBox"></div>
+      <p class="note">用另一台 iPhone／iPad 的「相機」App 掃描，就能一起監看。</p>
+      <div class="row"><button type="button" class="primary" data-close>完成</button></div>
+    </div>
+  </div>
+
+  <script src="vendor/peerjs.min.js"></script>
+  <script src="vendor/qrcode.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/viewer.js"></script>
+</body>
+</html>

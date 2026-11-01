@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="監視鏡頭">
+  <meta name="theme-color" content="#000000">
+  <meta name="referrer" content="no-referrer">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>鏡頭｜家用監視器</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-camera">
+  <video id="preview" autoplay playsinline muted></video>
+
+  <header class="topbar">
+    <div class="chip" id="status"><span class="dot wait"></span><span id="statusText">準備中</span></div>
+    <div class="chip" id="camName">鏡頭</div>
+    <div class="chip" id="viewerCount" title="正在監看的裝置數">👁 0</div>
+  </header>
+
+  <nav class="toolbar" id="toolbar">
+    <button type="button" id="btnFlip"><b>🔄</b><span>切換鏡頭</span></button>
+    <label class="btn" for="selQuality"><b>🎞</b>
+      <select id="selQuality" aria-label="畫質">
+        <option value="480">480p</option>
+        <option value="720">720p</option>
+        <option value="1080">1080p</option>
+      </select>
+    </label>
+    <button type="button" id="btnMic"><b>🎤</b><span>麥克風開</span></button>
+    <button type="button" id="btnBlack"><b>🌙</b><span>黑畫面</span></button>
+    <button type="button" id="btnQR"><b>▦</b><span>QR Code</span></button>
+    <button type="button" id="btnSettings"><b>⚙️</b><span>設定</span></button>
+  </nav>
+
+  <div id="blackout" class="blackout hidden">
+    <div class="blackout-hint" id="blackoutHint">拍攝中<br>連點兩下回到畫面</div>
+  </div>
+
+  <!-- 開始畫面 -->
+  <div id="startOverlay" class="overlay">
+    <div class="card">
+      <h1>📷 鏡頭模式</h1>
+      <p id="joinNote" class="note hidden">你正在把這支手機加入一個已經建立的房間。</p>
+      <ol class="tips">
+        <li>請把這支手機<strong>接上充電器</strong>。</li>
+        <li>到「設定 › 螢幕顯示與亮度 › 自動鎖定」選<strong>永不</strong>。</li>
+        <li>拍攝時請<strong>停留在這個頁面</strong>：鎖定螢幕或切換到其他 App，iOS 會關閉相機。</li>
+      </ol>
+      <button type="button" class="primary" id="btnStart">開始拍攝</button>
+      <p id="startError" class="error hidden"></p>
+      <p class="small"><a href="index.html">回首頁</a></p>
+    </div>
+  </div>
+
+  <!-- QR Code 視窗 -->
+  <div id="qrModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <div class="card">
+      <h2 id="qrTitle">掃描 QR Code</h2>
+      <div class="tabs">
+        <button type="button" class="tab active" data-tab="view">📺 監看</button>
+        <button type="button" class="tab" data-tab="join">📷 加入其他鏡頭</button>
+      </div>
+      <div class="qr" id="qrBox"></div>
+      <p class="note" id="qrDesc"></p>
+      <div class="row">
+        <button type="button" id="btnCopy">複製連結</button>
+        <button type="button" class="primary" data-close>完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 設定視窗 -->
+  <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="card">
+      <h2 id="setTitle">鏡頭設定</h2>
+      <label class="field">這支鏡頭的名稱
+        <input type="text" id="inpName" maxlength="20" placeholder="例如：客廳、嬰兒房">
+      </label>
+      <p class="note">房間代號：<b id="roomCode">----</b>　鏡頭位置：<b id="slotNo">-</b></p>
+      <div class="row">
+        <button type="button" class="danger" id="btnNewRoom">建立新房間</button>
+        <button type="button" class="primary" data-close>完成</button>
+      </div>
+      <p class="small">建立新房間會產生新的密鑰，舊的 QR Code 全部失效，所有監看端與其他鏡頭需要重新掃描。</p>
+    </div>
+  </div>
+
+  <script src="vendor/peerjs.min.js"></script>
+  <script src="vendor/qrcode.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/camera.js"></script>
+</body>
+</html>

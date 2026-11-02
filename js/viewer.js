@@ -55,7 +55,7 @@
     el.chkSound.checked = settings.sound;
     el.rngSens.value = settings.sens;
     el.sensVal.textContent = settings.sens;
-    el.btnSound.textContent = settings.sound ? '🔔' : '🔕';
+    C.setIcon(el.btnSound, settings.sound ? 'bell' : 'belloff');
     el.btnSound.classList.toggle('off', !settings.sound);
     el.btnMotion.classList.toggle('off', !settings.motion);
   }
@@ -332,9 +332,9 @@
     const t = document.createElement('div');
     t.className = 'tile connecting';
     t.innerHTML = '<video playsinline autoplay muted></video>' +
-      '<div class="tile-label"><span class="dot"></span><span class="name"></span><span class="mic"></span></div>' +
+      '<div class="tile-label chip glass"><span class="dot"></span><span class="name"></span><span class="mic hidden">' + C.icon('micoff') + '</span></div>' +
       '<div class="tile-state">連線中…</div>' +
-      '<button type="button" class="tile-audio" aria-label="聲音開關">🔇</button>';
+      '<button type="button" class="tile-audio glass" aria-label="聲音開關">' + C.icon('spkoff') + '</button>';
     s.tile = t;
     t.video = t.querySelector('video');
     t.addEventListener('click', (e) => {
@@ -370,9 +370,11 @@
     if (!s.tile) return;
     const name = (s.info && s.info.name) || `鏡頭 ${s.n}`;
     s.tile.querySelector('.name').textContent = name;
-    s.tile.querySelector('.mic').textContent = s.info && s.info.mic === false ? ' 🔇無聲' : '';
-    s.tile.querySelector('.tile-audio').textContent = s.audioOn ? '🔊' : '🔇';
-    s.tile.querySelector('.tile-audio').classList.toggle('on', s.audioOn);
+    s.tile.querySelector('.mic').classList.toggle('hidden', !(s.info && s.info.mic === false));
+    const btn = s.tile.querySelector('.tile-audio');
+    C.setIcon(btn, s.audioOn ? 'spk' : 'spkoff');
+    btn.classList.toggle('on', s.audioOn);
+    btn.setAttribute('aria-label', s.audioOn ? '關閉聲音' : '開啟聲音');
   }
 
   function setInfo(s, info) {
@@ -533,7 +535,7 @@
   function openModal(m) { m.classList.remove('hidden'); }
   document.querySelectorAll('.modal').forEach((m) => {
     m.addEventListener('click', (e) => {
-      if (e.target === m || e.target.hasAttribute('data-close')) m.classList.add('hidden');
+      if (e.target === m || e.target.closest('[data-close]')) m.classList.add('hidden');
     });
   });
   el.btnSound.addEventListener('click', () => {

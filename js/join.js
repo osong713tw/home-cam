@@ -46,9 +46,10 @@
       b.type = 'button';
       b.className = 'room';
       const names = [...r.names.values()];
-      b.innerHTML = '<b></b><span></span>';
-      b.querySelector('b').textContent = '📹 ' + names.join('、');
-      b.querySelector('span').textContent = `${names.length} 支鏡頭 · 點這裡加入`;
+      b.innerHTML = '<span class="row-icon blue">' + C.icon('cam') + '</span><span class="row-text"><b></b><small></small></span>' +
+        '<svg class="chev" aria-hidden="true"><use href="icons/sprite.svg?v=7#chev"></use></svg>';
+      b.querySelector('b').textContent = names.join('、');
+      b.querySelector('small').textContent = `${names.length} 支鏡頭`;
       b.addEventListener('click', () => choose(r));
       el.list.appendChild(b);
     });
@@ -61,7 +62,7 @@
     el.pinRoom.textContent = [...r.names.values()].join('、');
     el.pinError.textContent = '';
     el.pinInput.value = '';
-    setStatus('請輸入鏡頭畫面上方「🔑」後面的 4 位數配對碼', false);
+    setStatus('請輸入鏡頭畫面上方鑰匙圖示旁的 4 位數配對碼', false);
     setTimeout(() => el.pinInput.focus(), 50);
   }
 
@@ -159,7 +160,7 @@
         } else {
           setStatus(notLocal
             ? '找到鏡頭，但這台裝置不是透過同一個 Wi-Fi 連線，無法加入。請連上同一個 Wi-Fi，或改用 QR Code。'
-            : `找不到鏡頭。請確認：① 鏡頭手機已按「開始拍攝」、上方有顯示 🔑 配對碼 ② 兩台都連在同一個 Wi-Fi（不能一台用行動網路）。也可以改用 QR Code 掃描。\n\n這台的網路代碼：${codes}（可和鏡頭端「⚙️ 設定」裡的網路代碼比對，應該要有相同的）`, false);
+            : `找不到鏡頭。請確認：① 鏡頭手機已按「開始拍攝」、上方有顯示鑰匙與配對碼 ② 兩台都連在同一個 Wi-Fi（不能一台用行動網路）。也可以改用 QR Code 掃描。\n\n這台的網路代碼：${codes}（可和鏡頭端「設定」裡的網路代碼比對，應該要有相同的）`, false);
           el.btnRetry.classList.remove('hidden');
         }
       }, 8000);

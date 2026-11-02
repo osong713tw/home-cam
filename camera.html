@@ -13,31 +13,32 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <title>鏡頭｜家用監視器</title>
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
 </head>
-<body class="page-camera">
+<body class="page-camera theme-dark">
   <video id="preview" autoplay playsinline muted></video>
 
   <header class="topbar">
-    <div class="chip" id="status"><span class="dot wait"></span><span id="statusText">準備中</span></div>
-    <div class="chip" id="camName">鏡頭</div>
-    <div class="chip" id="viewerCount" title="正在監看的裝置數">👁 0</div>
-    <div class="chip hidden" id="pinChip" title="同一個 Wi-Fi 的裝置在首頁按「加入監看」輸入這組配對碼">🔑 <b id="pinText">----</b></div>
+    <div class="chip glass" id="status"><span class="dot wait"></span><span id="statusText">準備中</span></div>
+    <div class="chip glass" id="camName">鏡頭</div>
+    <div class="chip glass" id="viewerCount" title="正在監看的裝置數"><svg class="ic"><use href="icons/sprite.svg?v=7#eye"/></svg><span id="viewerNum">0</span></div>
+    <div class="chip glass hidden" id="pinChip" title="配對碼"><svg class="ic"><use href="icons/sprite.svg?v=7#key"/></svg><b id="pinText">----</b></div>
   </header>
 
-  <nav class="toolbar" id="toolbar">
-    <button type="button" id="btnFlip"><b>🔄</b><span>切換鏡頭</span></button>
-    <label class="btn" for="selQuality"><b>🎞</b>
+  <nav class="dock glass" id="toolbar" aria-label="鏡頭控制">
+    <button type="button" class="dock-btn" id="btnFlip" aria-label="切換前後鏡頭"><svg class="ic"><use href="icons/sprite.svg?v=7#flip"/></svg></button>
+    <label class="dock-pill" for="selQuality">
       <select id="selQuality" aria-label="畫質">
         <option value="480">480p</option>
         <option value="720">720p</option>
         <option value="1080">1080p</option>
       </select>
     </label>
-    <button type="button" id="btnMic"><b>🎤</b><span>麥克風開</span></button>
-    <button type="button" id="btnBlack"><b>🌙</b><span>黑畫面</span></button>
-    <button type="button" id="btnQR"><b>▦</b><span>QR Code</span></button>
-    <button type="button" id="btnSettings"><b>⚙️</b><span>設定</span></button>
+    <button type="button" class="dock-btn" id="btnMic" aria-label="麥克風"><svg class="ic"><use href="icons/sprite.svg?v=7#mic"/></svg></button>
+    <button type="button" class="dock-btn" id="btnBlack" aria-label="黑畫面省電"><svg class="ic"><use href="icons/sprite.svg?v=7#moon"/></svg></button>
+    <span class="dock-sep"></span>
+    <button type="button" class="dock-btn" id="btnQR" aria-label="QR Code 與配對碼"><svg class="ic"><use href="icons/sprite.svg?v=7#qr"/></svg></button>
+    <button type="button" class="dock-btn" id="btnSettings" aria-label="設定"><svg class="ic"><use href="icons/sprite.svg?v=7#gear"/></svg></button>
   </nav>
 
   <div id="blackout" class="blackout hidden">
@@ -47,14 +48,16 @@
   <!-- 開始畫面 -->
   <div id="startOverlay" class="overlay">
     <div class="card">
-      <h1>📷 鏡頭模式</h1>
-      <p id="joinNote" class="note hidden">你正在把這支手機加入一個已經建立的房間。</p>
-      <ol class="tips">
-        <li>請把這支手機<strong>接上充電器</strong>。</li>
-        <li>到「設定 › 螢幕顯示與亮度 › 自動鎖定」選<strong>永不</strong>。</li>
-        <li>拍攝時請<strong>停留在這個頁面</strong>：鎖定螢幕或切換到其他 App，iOS 會關閉相機。</li>
-      </ol>
-      <button type="button" class="primary" id="btnStart">開始拍攝</button>
+      <div class="hero-icon"><svg class="ic"><use href="icons/sprite.svg?v=7#cam"/></svg></div>
+      <h1>鏡頭模式</h1>
+      <p class="lead">這支 iPhone 會變成監視鏡頭。</p>
+      <p id="joinNote" class="note hidden" style="text-align:center">你正在把這支手機加入一個已經建立的房間。</p>
+      <ul class="features">
+        <li><svg class="ic"><use href="icons/sprite.svg?v=7#bolt"/></svg><div><b>接上充電器</b><span>長時間拍攝很耗電。</span></div></li>
+        <li><svg class="ic"><use href="icons/sprite.svg?v=7#lock"/></svg><div><b>自動鎖定設為「永不」</b><span>設定 › 螢幕顯示與亮度 › 自動鎖定。</span></div></li>
+        <li><svg class="ic"><use href="icons/sprite.svg?v=7#phone"/></svg><div><b>停留在這個畫面</b><span>鎖定螢幕或切換到其他 App，iOS 會關閉相機。</span></div></li>
+      </ul>
+      <button type="button" class="primary cta" id="btnStart">開始拍攝</button>
       <p id="startError" class="error hidden"></p>
       <p class="small"><a href="index.html">回首頁</a></p>
     </div>
@@ -63,10 +66,13 @@
   <!-- QR Code 視窗 -->
   <div id="qrModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
     <div class="card">
-      <h2 id="qrTitle">掃描 QR Code</h2>
+      <div class="sheet-head">
+        <h2 id="qrTitle">邀請裝置</h2>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic" style="pointer-events:none"><use href="icons/sprite.svg?v=7#xmark"/></svg></button>
+      </div>
       <div class="tabs">
-        <button type="button" class="tab active" data-tab="view">📺 監看</button>
-        <button type="button" class="tab" data-tab="join">📷 加入其他鏡頭</button>
+        <button type="button" class="tab active" data-tab="view">監看</button>
+        <button type="button" class="tab" data-tab="join">加入其他鏡頭</button>
       </div>
       <div class="qr" id="qrBox"></div>
       <p class="note" id="qrDesc"></p>
@@ -81,24 +87,27 @@
   <!-- 設定視窗 -->
   <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="setTitle">
     <div class="card">
-      <h2 id="setTitle">鏡頭設定</h2>
-      <label class="field">這支鏡頭的名稱
+      <div class="sheet-head">
+        <h2 id="setTitle">鏡頭設定</h2>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic" style="pointer-events:none"><use href="icons/sprite.svg?v=7#xmark"/></svg></button>
+      </div>
+      <label class="field">鏡頭名稱
         <input type="text" id="inpName" maxlength="20" placeholder="例如：客廳、嬰兒房">
       </label>
-      <p class="note">房間代號：<b id="roomCode">----</b>　鏡頭位置：<b id="slotNo">-</b>　配對碼：<b id="pinText2">----</b></p>
-      <p class="small">網路代碼：<b id="netCodes">偵測中…</b>（監看端找不到鏡頭時，可比對兩邊的代碼是否有相同的）</p>
+      <p class="note">房間代號 <b id="roomCode">----</b>　·　位置 <b id="slotNo">-</b>　·　配對碼 <b id="pinText2">----</b></p>
+      <p class="small">網路代碼：<b id="netCodes">偵測中…</b>（監看端找不到鏡頭時，可以比對兩邊是否有相同的代碼）</p>
       <div class="row">
         <button type="button" class="danger" id="btnNewRoom">建立新房間</button>
         <button type="button" class="primary" data-close>完成</button>
       </div>
-      <p class="small">建立新房間會產生新的密鑰與配對碼，舊的 QR Code 與配對碼全部失效，所有監看端與其他鏡頭需要重新加入。</p>
+      <p class="small">建立新房間會產生新的密鑰與配對碼，舊的 QR Code 與配對碼全部失效，監看端與其他鏡頭都需要重新加入。</p>
     </div>
   </div>
 
-  <script src="vendor/peerjs.min.js?v=6"></script>
-  <script src="vendor/qrcode.js?v=6"></script>
-  <script src="js/config.js?v=6"></script>
-  <script src="js/common.js?v=6"></script>
-  <script src="js/camera.js?v=6"></script>
+  <script src="vendor/peerjs.min.js?v=7"></script>
+  <script src="vendor/qrcode.js?v=7"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/common.js?v=7"></script>
+  <script src="js/camera.js?v=7"></script>
 </body>
 </html>

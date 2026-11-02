@@ -5,81 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="家用監視器">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="referrer" content="no-referrer">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <title>家用監視器</title>
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body class="page-home">
-  <div class="home">
-    <h1>📹 家用監視器</h1>
-    <p class="note">用 iPhone 當監視鏡頭，其他 iPhone／iPad 輸入配對碼或掃描 QR Code，就能即時監看。</p>
+  <main class="home">
+    <header class="hero">
+      <div class="app-icon"><svg class="ic"><use href="icons/sprite.svg?v=7#cam"/></svg></div>
+      <h1>家用監視器</h1>
+      <p>用 iPhone 當監視鏡頭，同一個 Wi-Fi 的 iPhone／iPad 輸入配對碼，就能即時監看。</p>
+    </header>
 
-    <div class="choices">
-      <a class="choice" href="camera.html" id="goCamera">
-        <b>📷 這台當鏡頭</b>
-        <span id="camDesc">開啟相機，畫面上會出現讓其他裝置掃描的 QR Code。</span>
-      </a>
-      <a class="choice hidden" href="viewer.html" id="goViewer">
-        <b>📺 繼續監看</b>
-        <span>回到上次加入過的房間。</span>
-      </a>
-      <button type="button" class="choice" id="goJoin">
-        <b>📺 加入監看</b>
-        <span>自動找出同一個 Wi-Fi 上的鏡頭，輸入配對碼就能看，不用掃 QR Code。</span>
-      </button>
-    </div>
+    <section class="group">
+      <h2 class="group-title">開始使用</h2>
+      <div class="list">
+        <a class="list-row" href="camera.html" id="goCamera">
+          <span class="row-icon blue"><svg class="ic"><use href="icons/sprite.svg?v=7#cam"/></svg></span>
+          <span class="row-text"><b>這台當鏡頭</b><small id="camDesc">開啟相機，開始拍攝並顯示配對碼。</small></span>
+          <svg class="chev"><use href="icons/sprite.svg?v=7#chev"/></svg>
+        </a>
+        <a class="list-row hidden" href="viewer.html" id="goViewer">
+          <span class="row-icon green"><svg class="ic"><use href="icons/sprite.svg?v=7#play"/></svg></span>
+          <span class="row-text"><b>繼續監看</b><small>回到上次加入過的房間。</small></span>
+          <svg class="chev"><use href="icons/sprite.svg?v=7#chev"/></svg>
+        </a>
+        <button type="button" class="list-row" id="goJoin">
+          <span class="row-icon orange"><svg class="ic"><use href="icons/sprite.svg?v=7#wifi"/></svg></span>
+          <span class="row-text"><b>加入監看</b><small>自動找出同一個 Wi-Fi 的鏡頭，輸入配對碼就能看。</small></span>
+          <svg class="chev"><use href="icons/sprite.svg?v=7#chev"/></svg>
+        </button>
+      </div>
+    </section>
 
-    <div id="joinModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
-      <div class="card">
+    <section class="group">
+      <h2 class="group-title">使用方式</h2>
+      <div class="list">
+        <div class="list-row static"><span class="step">1</span><span class="row-text">在要當鏡頭的 iPhone 上用 Safari 開啟這個網頁，點「這台當鏡頭」，並允許相機與麥克風。</span></div>
+        <div class="list-row static"><span class="step">2</span><span class="row-text">其他 iPhone／iPad 連上同一個 Wi-Fi，點「加入監看」，輸入鏡頭畫面上方鑰匙旁的 4 位數配對碼；也可以用「相機」App 掃描 QR Code。</span></div>
+        <div class="list-row static"><span class="step">3</span><span class="row-text">要再加一支鏡頭，用那支 iPhone 掃描鏡頭畫面上的「加入其他鏡頭」QR Code。</span></div>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">注意事項</h2>
+      <div class="list">
+        <div class="list-row static"><span class="row-icon green"><svg class="ic"><use href="icons/sprite.svg?v=7#bolt"/></svg></span><span class="row-text">當鏡頭的 iPhone 必須停在拍攝畫面、不能鎖定螢幕。請接上充電器，並把「自動鎖定」設為永不。</span></div>
+        <div class="list-row static"><span class="row-icon indigo"><svg class="ic"><use href="icons/sprite.svg?v=7#moon"/></svg></span><span class="row-text">想省電可以用「黑畫面」：螢幕全黑，但仍在拍攝。</span></div>
+        <div class="list-row static"><span class="row-icon red"><svg class="ic"><use href="icons/sprite.svg?v=7#bell"/></svg></span><span class="row-text">移動偵測提醒只有在監看畫面開著、在螢幕上時才會響。</span></div>
+        <div class="list-row static"><span class="row-icon teal"><svg class="ic"><use href="icons/sprite.svg?v=7#shield"/></svg></span><span class="row-text">影像只在裝置之間直接傳送，不會上傳到雲端；只有輸入配對碼或掃過 QR Code 的裝置才能觀看。</span></div>
+      </div>
+    </section>
+    <p class="footnote">小技巧：在 Safari 點「分享」›「加入主畫面」，之後就能像 App 一樣開啟。</p>
+  </main>
+
+  <!-- 加入監看 -->
+  <div id="joinModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+    <div class="card">
+      <div class="sheet-head">
         <h2 id="joinTitle">加入監看</h2>
-        <div class="join-status"><div class="spinner small-spinner" id="joinSpinner"></div><p id="joinStatus"></p></div>
-        <div id="roomList" class="room-list"></div>
-        <form id="pinForm" class="hidden" autocomplete="off">
-          <p class="note">房間：<b id="pinRoom"></b></p>
-          <input type="text" id="pinInput" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4"
-                 placeholder="····" aria-label="4 位數配對碼" autocomplete="off">
-          <p class="error" id="pinError"></p>
-          <div class="row">
-            <button type="button" id="btnPinBack">返回</button>
-            <button type="submit" class="primary">加入</button>
-          </div>
-        </form>
+        <button type="button" class="icon-btn" id="btnJoinClose" aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=7#xmark"/></svg></button>
+      </div>
+      <div class="join-status"><div class="spinner small-spinner" id="joinSpinner"></div><p id="joinStatus"></p></div>
+      <div id="roomList" class="room-list"></div>
+      <form id="pinForm" class="hidden" autocomplete="off">
+        <p class="note">房間：<b id="pinRoom"></b></p>
+        <input type="text" id="pinInput" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+               placeholder="····" aria-label="4 位數配對碼" autocomplete="off">
+        <p class="error" id="pinError"></p>
         <div class="row">
-          <button type="button" id="btnRetry" class="hidden">重新搜尋</button>
-          <button type="button" id="btnJoinClose">關閉</button>
+          <button type="button" id="btnPinBack">返回</button>
+          <button type="submit" class="primary">加入</button>
         </div>
+      </form>
+      <div class="row">
+        <button type="button" id="btnRetry" class="hidden"><svg class="ic"><use href="icons/sprite.svg?v=7#retry"/></svg>重新搜尋</button>
       </div>
     </div>
-
-    <section>
-      <h2>怎麼使用</h2>
-      <ol>
-        <li>在要當鏡頭的 iPhone 上用 Safari 開這個網頁，點「這台當鏡頭」並允許相機與麥克風。</li>
-        <li>其他 iPhone／iPad 連上<strong>同一個 Wi-Fi</strong>，打開這個網頁點「📺 加入監看」，輸入鏡頭畫面上方的 🔑 配對碼；或用「相機」App 掃描「📺 監看」QR Code。</li>
-        <li>要再加一支鏡頭，就用那支 iPhone 掃描「📷 加入其他鏡頭」QR Code。</li>
-      </ol>
-    </section>
-    <section>
-      <h2>注意事項</h2>
-      <ul>
-        <li>當鏡頭的 iPhone 必須<strong>停在拍攝頁面、不能鎖定螢幕</strong>，請接上充電器，並把「自動鎖定」設為永不。</li>
-        <li>省電可以用「🌙 黑畫面」，畫面會變黑，但仍在拍攝。</li>
-        <li>移動偵測提醒只有在監看頁面開著、在畫面上時才會響。</li>
-        <li>影像只在裝置之間直接傳送，不會上傳到雲端；只有掃過 QR Code 的裝置才能觀看。</li>
-      </ul>
-    </section>
-    <p class="small" style="text-align:center;margin-top:18px">小技巧：在 Safari 點「分享 › 加入主畫面」，之後就能像 App 一樣開啟。</p>
   </div>
-  <script src="vendor/peerjs.min.js?v=6"></script>
-  <script src="js/config.js?v=6"></script>
-  <script src="js/common.js?v=6"></script>
-  <script src="js/join.js?v=6"></script>
+
+  <script src="vendor/peerjs.min.js?v=7"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/common.js?v=7"></script>
+  <script src="js/join.js?v=7"></script>
   <script>
     (function () {
       function get(n) { try { return JSON.parse(localStorage.getItem('ipcam.' + n)); } catch (e) { return null; } }
@@ -93,7 +108,7 @@
       var ck = get('cam.key');
       if (ok(ck)) {
         document.getElementById('goCamera').href = 'camera.html#k=' + ck;
-        document.getElementById('camDesc').textContent = '回到上次的房間繼續拍攝（舊的 QR Code 仍然有效）。';
+        document.getElementById('camDesc').textContent = '回到上次的房間繼續拍攝（配對碼與 QR Code 不變）。';
       }
     })();
   </script>

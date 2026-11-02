@@ -112,9 +112,11 @@
     el.camName.textContent = displayName();
     el.slotNo.textContent = state.slot || '-';
     const n = [...state.viewers.values()].filter((v) => v.authed).length;
-    el.viewerCount.textContent = '👁 ' + n;
-    el.btnMic.querySelector('span').textContent = !state.hadAudio ? '無麥克風' : (state.mic ? '麥克風開' : '麥克風關');
-    el.btnMic.classList.toggle('off', !state.hadAudio || !state.mic);
+    $('#viewerNum').textContent = String(n);
+    const micOn = state.hadAudio && state.mic;
+    C.setIcon(el.btnMic, micOn ? 'mic' : 'micoff');
+    el.btnMic.setAttribute('aria-label', !state.hadAudio ? '沒有麥克風' : (state.mic ? '麥克風：開' : '麥克風：關'));
+    el.btnMic.classList.toggle('alert', !micOn);
     el.preview.classList.toggle('mirror', state.facing === 'user');
   }
 
@@ -522,7 +524,7 @@
     el.pinChip.classList.toggle('warn', !on);
     el.pinChip.title = on ? '同一個 Wi-Fi 的裝置在首頁按「加入監看」輸入這組配對碼' : '目前無法使用配對碼加入，請改用 QR Code';
     el.pinNote.textContent = on
-      ? `或用同一個 Wi-Fi 的 iPhone／iPad 打開首頁，點「📺 加入監看」，輸入配對碼 ${pin}。`
+      ? `或用同一個 Wi-Fi 的 iPhone／iPad 打開首頁，點「加入監看」，輸入配對碼 ${pin}。`
       : '（配對碼加入暫時無法使用，正在重試；請先用 QR Code。）';
   }
 
@@ -630,7 +632,7 @@
   function closeModal(m) { m.classList.add('hidden'); }
   document.querySelectorAll('.modal').forEach((m) => {
     m.addEventListener('click', (e) => {
-      if (e.target === m || e.target.hasAttribute('data-close')) closeModal(m);
+      if (e.target === m || e.target.closest('[data-close]')) closeModal(m);
     });
   });
 

@@ -13,41 +13,48 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <title>監看｜家用監視器</title>
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
 </head>
-<body class="page-viewer">
-  <header class="vbar">
-    <div class="chip" id="status"><span class="dot wait"></span><span id="statusText">準備中</span></div>
-    <div class="spacer"></div>
-    <button type="button" class="icon" id="btnSound" title="警示音開關">🔔</button>
-    <button type="button" class="icon" id="btnMotion" title="移動偵測設定">🏃</button>
-    <button type="button" class="icon" id="btnLog" title="移動紀錄">📋<span class="badge hidden" id="logBadge">0</span></button>
-    <button type="button" class="icon" id="btnShare" title="分享給其他監看裝置">▦</button>
-  </header>
-
+<body class="page-viewer theme-dark">
   <main id="grid" class="grid" data-count="0"></main>
   <div id="empty" class="empty">
     <div class="spinner"></div>
     <p id="emptyText">正在尋找鏡頭…</p>
-    <p class="small">請確認當鏡頭的 iPhone 已開啟拍攝頁面，並停留在畫面上。</p>
+    <span class="small">請確認當鏡頭的 iPhone 已開始拍攝，並停留在拍攝畫面。</span>
   </div>
+
+  <header class="vtop">
+    <div class="chip glass" id="status"><span class="dot wait"></span><span id="statusText">準備中</span></div>
+  </header>
+
+  <nav class="dock glass" aria-label="監看控制">
+    <a class="dock-btn btn" href="index.html" aria-label="回首頁" style="background:transparent"><svg class="ic"><use href="icons/sprite.svg?v=7#house"/></svg></a>
+    <span class="dock-sep"></span>
+    <button type="button" class="dock-btn" id="btnSound" aria-label="警示音開關"><svg class="ic"><use href="icons/sprite.svg?v=7#bell"/></svg></button>
+    <button type="button" class="dock-btn" id="btnMotion" aria-label="移動偵測設定"><svg class="ic"><use href="icons/sprite.svg?v=7#motion"/></svg></button>
+    <button type="button" class="dock-btn" id="btnLog" aria-label="移動紀錄"><svg class="ic"><use href="icons/sprite.svg?v=7#list"/></svg><span class="badge hidden" id="logBadge">0</span></button>
+    <button type="button" class="dock-btn" id="btnShare" aria-label="邀請其他監看裝置"><svg class="ic"><use href="icons/sprite.svg?v=7#share"/></svg></button>
+  </nav>
 
   <!-- 開始畫面 -->
   <div id="startOverlay" class="overlay">
     <div class="card">
-      <h1>📺 監看模式</h1>
+      <div class="hero-icon green"><svg class="ic"><use href="icons/sprite.svg?v=7#tv"/></svg></div>
+      <h1>監看模式</h1>
       <div id="noKey" class="hidden">
-        <p class="error">找不到房間資訊。</p>
-        <p>請用 iPhone／iPad 的「相機」App 掃描鏡頭畫面上的「📺 監看」QR Code 來開啟。</p>
+        <p class="lead">找不到房間資訊。</p>
+        <p class="note" style="text-align:center">請回首頁點「加入監看」輸入配對碼，或用「相機」App 掃描鏡頭畫面上的 QR Code。</p>
+        <a class="btn primary cta" href="index.html" style="color:#fff;background:var(--blue)">回首頁</a>
       </div>
       <div id="hasKey">
-        <ul class="tips">
-          <li>點一下畫面可以放大單一鏡頭，再點一下回到分割畫面。</li>
-          <li>點畫面右下角的 🔇 可以聽聲音。</li>
-          <li>有動靜時會發出警示音並閃紅框（這個頁面必須開著，在畫面上）。</li>
-          <li>想長時間監看，請把這台裝置的「自動鎖定」設為永不，並接上充電器。</li>
+        <p class="lead">即時觀看房間裡的所有鏡頭。</p>
+        <ul class="features">
+          <li><svg class="ic"><use href="icons/sprite.svg?v=7#plus"/></svg><div><b>點一下放大</b><span>點畫面可以放大單一鏡頭，再點一次回到分割畫面。</span></div></li>
+          <li><svg class="ic"><use href="icons/sprite.svg?v=7#spk"/></svg><div><b>聽聲音</b><span>點畫面右下角的喇叭按鈕。</span></div></li>
+          <li><svg class="ic"><use href="icons/sprite.svg?v=7#motion"/></svg><div><b>移動偵測</b><span>有動靜時發出警示音並閃紅框，這個畫面必須開著。</span></div></li>
+          <li><svg class="ic"><use href="icons/sprite.svg?v=7#bolt"/></svg><div><b>長時間監看</b><span>接上充電器，並把「自動鎖定」設為永不。</span></div></li>
         </ul>
-        <button type="button" class="primary" id="btnStart">開始監看</button>
+        <button type="button" class="primary cta" id="btnStart">開始監看</button>
       </div>
       <p id="startError" class="error hidden"></p>
       <p class="small"><a href="index.html">回首頁</a></p>
@@ -57,14 +64,17 @@
   <!-- 移動偵測設定 -->
   <div id="motionModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="motionTitle">
     <div class="card">
-      <h2 id="motionTitle">移動偵測</h2>
-      <label class="switch"><input type="checkbox" id="chkMotion"> 啟用移動偵測</label>
-      <label class="switch"><input type="checkbox" id="chkSound"> 偵測到時發出警示音</label>
-      <label class="field">靈敏度：<b id="sensVal">5</b>
+      <div class="sheet-head">
+        <h2 id="motionTitle">移動偵測</h2>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=7#xmark"/></svg></button>
+      </div>
+      <label class="switch"><input type="checkbox" id="chkMotion">啟用移動偵測</label>
+      <label class="switch"><input type="checkbox" id="chkSound">偵測到時發出警示音</label>
+      <label class="field">靈敏度　<b id="sensVal" style="color:var(--label)">5</b>
         <input type="range" id="rngSens" min="1" max="10" step="1">
-        <span class="range-labels"><span>低（大動作才提醒）</span><span>高（小變化也提醒）</span></span>
+        <span class="range-labels"><span>低：大動作才提醒</span><span>高：小變化也提醒</span></span>
       </label>
-      <p class="small">提醒後 10 秒內同一支鏡頭不會重複響。iPhone 開著靜音鍵時，iOS 16.4 以上仍會發出警示音；舊版請關閉靜音鍵。</p>
+      <p class="small">同一支鏡頭提醒後 10 秒內不會重複響。iOS 16.4 以上即使開著靜音鍵也會響；舊版請關閉靜音鍵。</p>
       <div class="row">
         <button type="button" id="btnTestBeep">測試警示音</button>
         <button type="button" class="primary" data-close>完成</button>
@@ -75,30 +85,36 @@
   <!-- 移動紀錄 -->
   <div id="logModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="logTitle">
     <div class="card">
-      <h2 id="logTitle">移動紀錄</h2>
+      <div class="sheet-head">
+        <h2 id="logTitle">移動紀錄</h2>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=7#xmark"/></svg></button>
+      </div>
       <ul class="log" id="logList"></ul>
       <div class="row">
-        <button type="button" id="btnClearLog">清除紀錄</button>
+        <button type="button" class="danger" id="btnClearLog">清除紀錄</button>
         <button type="button" class="primary" data-close>完成</button>
       </div>
     </div>
   </div>
 
-  <!-- 分享 -->
+  <!-- 邀請其他監看裝置 -->
   <div id="shareModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
     <div class="card">
-      <h2 id="shareTitle">新增監看裝置</h2>
+      <div class="sheet-head">
+        <h2 id="shareTitle">邀請其他監看裝置</h2>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=7#xmark"/></svg></button>
+      </div>
       <div class="qr" id="qrBox"></div>
       <p class="note">用另一台 iPhone／iPad 的「相機」App 掃描，就能一起監看。</p>
-      <p class="note pin-note">或連上同一個 Wi-Fi，打開首頁點「📺 加入監看」，輸入配對碼 <b id="sharePin">----</b>。</p>
+      <p class="note pin-note">或連上同一個 Wi-Fi，在首頁點「加入監看」，輸入配對碼 <b id="sharePin">----</b>。</p>
       <div class="row"><button type="button" class="primary" data-close>完成</button></div>
     </div>
   </div>
 
-  <script src="vendor/peerjs.min.js?v=6"></script>
-  <script src="vendor/qrcode.js?v=6"></script>
-  <script src="js/config.js?v=6"></script>
-  <script src="js/common.js?v=6"></script>
-  <script src="js/viewer.js?v=6"></script>
+  <script src="vendor/peerjs.min.js?v=7"></script>
+  <script src="vendor/qrcode.js?v=7"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/common.js?v=7"></script>
+  <script src="js/viewer.js?v=7"></script>
 </body>
 </html>

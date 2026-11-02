@@ -278,6 +278,14 @@ window.IPCam = (function () {
     } catch (e) { return null; }
   }
 
+  // ---- 圖示（icons/sprite.svg） ----
+  const ICON_URL = 'icons/sprite.svg?v=7';
+  const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="${ICON_URL}#${name}"></use></svg>`;
+  function setIcon(elm, name) {
+    const u = elm && elm.querySelector('use');
+    if (u) u.setAttribute('href', `${ICON_URL}#${name}`);
+  }
+
   function fmtTime(d) {
     const p = (n) => String(n).padStart(2, '0');
     return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
@@ -288,6 +296,6 @@ window.IPCam = (function () {
     MAX_CAMS, MAX_VIEWERS, PROTOCOL, $, peerOptions, newKey, randomId, isValidKey, roomIdFromKey,
     camPeerId, slotFromPeerId, hmacHex, safeEqual, readHashKey, setHashKey, pageUrl, store, qrSvg,
     toast, wake, unlockAudio, beep, envProblem, fmtTime, escapeHtml,
-    LOBBY_SLOTS, getNetworkIds, netIdOf, netCode, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
+    icon, setIcon, LOBBY_SLOTS, getNetworkIds, netIdOf, netCode, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
   };
 })();

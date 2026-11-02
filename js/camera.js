@@ -524,8 +524,8 @@
     el.pinChip.classList.toggle('warn', !on);
     el.pinChip.title = on ? '同一個 Wi-Fi 的裝置在首頁按「加入監看」輸入這組配對碼' : '目前無法使用配對碼加入，請改用 QR Code';
     el.pinNote.textContent = on
-      ? `或用同一個 Wi-Fi 的 iPhone／iPad 打開首頁，點「加入監看」，輸入配對碼 ${pin}。`
-      : '（配對碼加入暫時無法使用，正在重試；請先用 QR Code。）';
+      ? `或在首頁點「加入監看」，輸入配對碼 ${pin}`
+      : '配對碼暫時無法使用，請先用 QR Code';
   }
 
   // 收集這台手機所有網路的位址（Wi-Fi／行動網路、IPv4／IPv6），各自公告一次
@@ -642,8 +642,8 @@
     el.qrBox.innerHTML = C.qrSvg(url);
     el.qrBox.dataset.url = url;
     el.qrDesc.textContent = qrTab === 'view'
-      ? '用其他 iPhone／iPad 的「相機」App 掃描，就能開始監看這個房間的所有鏡頭。'
-      : '用另一支要當鏡頭的 iPhone 掃描，它會加入同一個房間，監看端會自動多一個畫面。';
+      ? '用「相機」App 掃描即可監看'
+      : '用另一支 iPhone 掃描，加入成為鏡頭';
     el.qrModal.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === qrTab));
   }
   el.qrModal.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => { qrTab = b.dataset.tab; renderQR(); }));
@@ -661,7 +661,7 @@
     broadcast({ t: 'info', info: info() });
   });
   el.btnNewRoom.addEventListener('click', () => {
-    if (!confirm('建立新房間後，舊的 QR Code 會全部失效，監看端與其他鏡頭都需要重新掃描。確定嗎？')) return;
+    if (!confirm('建立新房間？所有裝置需重新加入。')) return;
     const k = C.newKey();
     store.set('cam.key', k);
     C.setHashKey(k);

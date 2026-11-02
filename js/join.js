@@ -47,7 +47,7 @@
       b.className = 'room';
       const names = [...r.names.values()];
       b.innerHTML = '<span class="row-icon blue">' + C.icon('cam') + '</span><span class="row-text"><b></b><small></small></span>' +
-        '<svg class="chev" aria-hidden="true"><use href="icons/sprite.svg?v=7#chev"></use></svg>';
+        '<svg class="chev" aria-hidden="true"><use href="icons/sprite.svg?v=8#chev"></use></svg>';
       b.querySelector('b').textContent = names.join('、');
       b.querySelector('small').textContent = `${names.length} 支鏡頭`;
       b.addEventListener('click', () => choose(r));
@@ -62,7 +62,7 @@
     el.pinRoom.textContent = [...r.names.values()].join('、');
     el.pinError.textContent = '';
     el.pinInput.value = '';
-    setStatus('請輸入鏡頭畫面上方鑰匙圖示旁的 4 位數配對碼', false);
+    setStatus('輸入鏡頭畫面上的 4 位數配對碼', false);
     setTimeout(() => el.pinInput.focus(), 50);
   }
 
@@ -77,7 +77,7 @@
         r.names.set(conn.peer, name);
         if (!r.conns.includes(conn)) r.conns.push(conn);
         if (!chosen) {
-          setStatus('找到下面的房間，點一下加入：', true);
+          setStatus('選擇房間', true);
           renderRooms();
         }
         break;
@@ -89,7 +89,7 @@
         if (conn !== pending) return;
         if (!C.isValidKey(msg.key)) { el.pinError.textContent = '收到的資料不正確，請重試'; return; }
         C.store.set('view.key', msg.key);
-        setStatus('配對成功，正在開啟監看…', true);
+        setStatus('配對成功', true);
         location.href = 'viewer.html#k=' + msg.key;
         break;
       case 'bad':
@@ -118,12 +118,12 @@
     el.btnRetry.classList.add('hidden');
     const problem = C.envProblem(false);
     if (problem) { setStatus(problem, false); return; }
-    setStatus('正在尋找同一個 Wi-Fi 上的鏡頭…', true);
+    setStatus('搜尋鏡頭中…', true);
 
     const netIds = (await C.getNetworkIds(7000)).slice(0, 4);
     if (sid !== searchId) return;
     if (!netIds.length) {
-      setStatus('無法偵測目前的網路。請改用「相機」App 掃描鏡頭畫面上的 QR Code。', false);
+      setStatus('無法偵測網路，請改用 QR Code', false);
       el.btnRetry.classList.remove('hidden');
       return;
     }
@@ -135,7 +135,7 @@
       if (sid !== searchId) return;
       if (err && (err.type === 'peer-unavailable' || err.type === 'webrtc')) return; // 該公告位置沒有鏡頭
       if (!p.open) {
-        setStatus('無法連上配對伺服器，請確認網路後重試。', false);
+        setStatus('無法連線，請重試', false);
         el.btnRetry.classList.remove('hidden');
       }
     });
@@ -156,11 +156,13 @@
         if (sid !== searchId || chosen) return;
         const found = [...rooms.values()].some((r) => r.conns.some((c) => c.open));
         if (found) {
-          setStatus('找到下面的房間，點一下加入：', false);
+          setStatus('選擇房間', false);
         } else {
           setStatus(notLocal
-            ? '找到鏡頭，但這台裝置不是透過同一個 Wi-Fi 連線，無法加入。請連上同一個 Wi-Fi，或改用 QR Code。'
-            : `找不到鏡頭。請確認：① 鏡頭手機已按「開始拍攝」、上方有顯示鑰匙與配對碼 ② 兩台都連在同一個 Wi-Fi（不能一台用行動網路）。也可以改用 QR Code 掃描。\n\n這台的網路代碼：${codes}（可和鏡頭端「設定」裡的網路代碼比對，應該要有相同的）`, false);
+            ? '請連上與鏡頭相同的 Wi-Fi，或改用 QR Code'
+            : `找不到鏡頭
+請確認鏡頭正在拍攝、兩台連同一個 Wi-Fi
+網路代碼 ${codes}`, false);
           el.btnRetry.classList.remove('hidden');
         }
       }, 8000);
@@ -184,7 +186,7 @@
   el.pinInput.addEventListener('input', () => {
     el.pinInput.value = el.pinInput.value.replace(/\D/g, '').slice(0, 4);
   });
-  el.btnPinBack.addEventListener('click', () => { chosen = null; pending = null; showList(); setStatus('點一下要加入的房間：', false); });
+  el.btnPinBack.addEventListener('click', () => { chosen = null; pending = null; showList(); setStatus('選擇房間', false); });
   el.btnRetry.addEventListener('click', search);
   el.btn.addEventListener('click', () => { el.modal.classList.remove('hidden'); search(); });
   const close = () => { el.modal.classList.add('hidden'); cleanup(); };

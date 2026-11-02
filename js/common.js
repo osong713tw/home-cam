@@ -279,7 +279,7 @@ window.IPCam = (function () {
   }
 
   // ---- 圖示（icons/sprite.svg） ----
-  const ICON_URL = 'icons/sprite.svg?v=7';
+  const ICON_URL = 'icons/sprite.svg?v=8';
   const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="${ICON_URL}#${name}"></use></svg>`;
   function setIcon(elm, name) {
     const u = elm && elm.querySelector('use');

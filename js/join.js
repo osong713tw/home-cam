@@ -48,7 +48,7 @@
       b.className = 'room';
       const names = [...r.names.values()];
       b.innerHTML = '<span class="row-icon blue">' + C.icon('cam') + '</span><span class="row-text"><b></b><small></small></span>' +
-        '<svg class="chev" aria-hidden="true"><use href="icons/sprite.svg?v=10#chev"></use></svg>';
+        '<svg class="chev" aria-hidden="true"><use href="icons/sprite.svg?v=11#chev"></use></svg>';
       b.querySelector('b').textContent = names.join('、');
       b.querySelector('small').textContent = `${names.length} 支鏡頭`;
       b.addEventListener('click', () => choose(r));
@@ -161,9 +161,9 @@
         } else {
           setStatus(notLocal
             ? '請連上與鏡頭相同的 Wi-Fi，或改用 QR Code'
-            : `找不到鏡頭
-請確認鏡頭正在拍攝、兩台連同一個 Wi-Fi
-網路代碼 ${codes}`, false);
+            : (C.isValidKey(C.store.get('view.key', null))
+              ? '找不到鏡頭\n「加入監看」只能在同一個 Wi-Fi 使用\n已配對過，請關閉後點「繼續監看」'
+              : `找不到鏡頭\n請確認鏡頭正在拍攝、兩台連同一個 Wi-Fi\n網路代碼 ${codes}`), false);
           el.btnRetry.classList.remove('hidden');
         }
       }, 8000);

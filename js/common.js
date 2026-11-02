@@ -279,7 +279,7 @@ window.IPCam = (function () {
   }
 
   // ---- 圖示（icons/sprite.svg） ----
-  const ICON_URL = 'icons/sprite.svg?v=10';
+  const ICON_URL = 'icons/sprite.svg?v=11';
   const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="${ICON_URL}#${name}"></use></svg>`;
   function setIcon(elm, name) {
     const u = elm && elm.querySelector('use');
@@ -287,7 +287,7 @@ window.IPCam = (function () {
   }
 
   // ---- 版本更新：避免主畫面 App／瀏覽器一直顯示快取的舊版 ----
-  const APP_VERSION = 10; // 每次發布時與 version.json 一起調整
+  const APP_VERSION = 11; // 每次發布時與 version.json 一起調整
   let updateNotified = false;
   async function latestVersion() {
     try {

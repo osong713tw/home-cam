@@ -159,3 +159,6 @@ button.choice { width: 100%; text-align: left; font: inherit; min-height: 0; }
 .pin-input { display: block; width: 100%; margin: 10px 0 4px; text-align: center; font-size: 34px; letter-spacing: 14px;
   font-variant-numeric: tabular-nums; color: var(--text); background: #0f1216; border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
 .pin-note { color: var(--wait); }
+.chip.warn { color: var(--wait); }
+.chip.warn::after { content: ' ⚠'; }
+#joinStatus { white-space: pre-line; }

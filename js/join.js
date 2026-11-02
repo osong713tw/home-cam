@@ -119,14 +119,15 @@
     if (problem) { setStatus(problem, false); return; }
     setStatus('正在尋找同一個 Wi-Fi 上的鏡頭…', true);
 
-    const ip = await C.getPublicIPv4(6000);
+    const netIds = (await C.getNetworkIds(7000)).slice(0, 4);
     if (sid !== searchId) return;
-    if (!ip) {
+    if (!netIds.length) {
       setStatus('無法偵測目前的網路。請改用「相機」App 掃描鏡頭畫面上的 QR Code。', false);
       el.btnRetry.classList.remove('hidden');
       return;
     }
-    const base = await C.lobbyBase(ip);
+    const bases = await Promise.all(netIds.map(C.lobbyBase));
+    const codes = (await Promise.all(netIds.map(C.netCode))).join('、');
     const p = new window.Peer(C.peerOptions());
     peer = p;
     p.on('error', (err) => {
@@ -139,7 +140,7 @@
     });
     p.on('open', () => {
       if (sid !== searchId) return;
-      for (let n = 1; n <= C.LOBBY_SLOTS; n++) {
+      for (const base of bases) for (let n = 1; n <= C.LOBBY_SLOTS; n++) {
         let conn;
         try { conn = p.connect(C.lobbyPeerId(base, n), { serialization: 'json', reliable: true }); } catch (e) { conn = null; }
         if (!conn) continue;
@@ -158,7 +159,7 @@
         } else {
           setStatus(notLocal
             ? '找到鏡頭，但這台裝置不是透過同一個 Wi-Fi 連線，無法加入。請連上同一個 Wi-Fi，或改用 QR Code。'
-            : '找不到鏡頭。請確認：① 鏡頭手機已按「開始拍攝」、上方有顯示 🔑 配對碼 ② 兩台都連在同一個 Wi-Fi（不能一台用行動網路）。也可以改用 QR Code 掃描。', false);
+            : `找不到鏡頭。請確認：① 鏡頭手機已按「開始拍攝」、上方有顯示 🔑 配對碼 ② 兩台都連在同一個 Wi-Fi（不能一台用行動網路）。也可以改用 QR Code 掃描。\n\n這台的網路代碼：${codes}（可和鏡頭端「⚙️ 設定」裡的網路代碼比對，應該要有相同的）`, false);
           el.btnRetry.classList.remove('hidden');
         }
       }, 8000);

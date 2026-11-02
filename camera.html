@@ -13,7 +13,7 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <title>鏡頭｜家用監視器</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body class="page-camera">
   <video id="preview" autoplay playsinline muted></video>
@@ -86,6 +86,7 @@
         <input type="text" id="inpName" maxlength="20" placeholder="例如：客廳、嬰兒房">
       </label>
       <p class="note">房間代號：<b id="roomCode">----</b>　鏡頭位置：<b id="slotNo">-</b>　配對碼：<b id="pinText2">----</b></p>
+      <p class="small">網路代碼：<b id="netCodes">偵測中…</b>（監看端找不到鏡頭時，可比對兩邊的代碼是否有相同的）</p>
       <div class="row">
         <button type="button" class="danger" id="btnNewRoom">建立新房間</button>
         <button type="button" class="primary" data-close>完成</button>
@@ -94,10 +95,10 @@
     </div>
   </div>
 
-  <script src="vendor/peerjs.min.js"></script>
-  <script src="vendor/qrcode.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/common.js"></script>
-  <script src="js/camera.js"></script>
+  <script src="vendor/peerjs.min.js?v=6"></script>
+  <script src="vendor/qrcode.js?v=6"></script>
+  <script src="js/config.js?v=6"></script>
+  <script src="js/common.js?v=6"></script>
+  <script src="js/camera.js?v=6"></script>
 </body>
 </html>

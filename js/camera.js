@@ -43,7 +43,7 @@
     qrModal: $('#qrModal'), qrBox: $('#qrBox'), qrDesc: $('#qrDesc'), btnCopy: $('#btnCopy'),
     settingsModal: $('#settingsModal'), inpName: $('#inpName'), roomCode: $('#roomCode'), slotNo: $('#slotNo'),
     btnNewRoom: $('#btnNewRoom'), pinChip: $('#pinChip'), pinText: $('#pinText'), pinText2: $('#pinText2'),
-    pinNote: $('#pinNote'),
+    pinNote: $('#pinNote'), netCodes: $('#netCodes'),
   };
 
   function showStartError(msg) {
@@ -514,56 +514,66 @@
   const tag = await C.roomTag(key);
   el.pinText.textContent = pin;
   el.pinText2.textContent = pin;
-  const lobby = { peer: null, ip: null, base: null, timer: null, fails: 0, lockouts: 0, lockUntil: 0, conns: new Set() };
+  const lobby = { netIds: [], entries: [], timer: null, fails: 0, lockouts: 0, lockUntil: 0, conns: new Set() };
 
-  function setPinChip(on) {
-    el.pinChip.classList.toggle('hidden', !on);
+  function updatePinChip() {
+    const on = lobby.entries.some((e) => e.open);
+    el.pinChip.classList.remove('hidden');
+    el.pinChip.classList.toggle('warn', !on);
+    el.pinChip.title = on ? '同一個 Wi-Fi 的裝置在首頁按「加入監看」輸入這組配對碼' : '目前無法使用配對碼加入，請改用 QR Code';
     el.pinNote.textContent = on
       ? `或用同一個 Wi-Fi 的 iPhone／iPad 打開首頁，點「📺 加入監看」，輸入配對碼 ${pin}。`
-      : '';
+      : '（配對碼加入暫時無法使用，正在重試；請先用 QR Code。）';
   }
 
+  // 收集這台手機所有網路的位址（Wi-Fi／行動網路、IPv4／IPv6），各自公告一次
   async function startLobby() {
     clearTimeout(lobby.timer);
     lobby.timer = null;
-    if (!lobby.ip) {
-      lobby.ip = await C.getPublicIPv4(6000);
-      if (!lobby.ip) { setPinChip(false); lobby.timer = setTimeout(startLobby, 60000); return; }
-      lobby.base = await C.lobbyBase(lobby.ip);
+    lobby.entries.forEach((e) => { if (e.peer) killPeer(e.peer); });
+    lobby.entries = [];
+    lobby.netIds = (await C.getNetworkIds(7000)).slice(0, 4);
+    el.netCodes.textContent = lobby.netIds.length ? (await Promise.all(lobby.netIds.map(C.netCode))).join('、') : '偵測不到';
+    if (!lobby.netIds.length) { updatePinChip(); lobby.timer = setTimeout(startLobby, 60000); return; }
+    for (const netId of lobby.netIds) {
+      const e = { netId, base: await C.lobbyBase(netId), peer: null, open: false };
+      lobby.entries.push(e);
+      createLobbyPeer(e, 1);
     }
-    createLobbyPeer(1);
+    updatePinChip();
   }
 
-  function createLobbyPeer(n) {
-    const p = new window.Peer(C.lobbyPeerId(lobby.base, n), C.peerOptions());
-    lobby.peer = p;
-    p.on('open', () => { if (lobby.peer === p && !p.__dead) setPinChip(true); });
+  function createLobbyPeer(e, n) {
+    const p = new window.Peer(C.lobbyPeerId(e.base, n), C.peerOptions());
+    e.peer = p;
+    e.open = false;
+    p.on('open', () => { if (e.peer === p && !p.__dead) { e.open = true; updatePinChip(); } });
     p.on('connection', (conn) => onLobbyConn(conn));
-    p.on('call', (c) => { try { c.close(); } catch (e) { /* ignore */ } });
-    p.on('disconnected', () => { if (lobby.peer === p && !p.__dead) retryLobby(15000); });
+    p.on('call', (c) => { try { c.close(); } catch (err) { /* ignore */ } });
+    p.on('disconnected', () => {
+      if (e.peer !== p || p.__dead) return;
+      e.open = false;
+      retryLobby(15000);
+    });
     p.on('error', (err) => {
-      if (lobby.peer !== p || p.__dead) return;
+      if (e.peer !== p || p.__dead) return;
       const t = err && err.type;
       if (t === 'peer-unavailable' || t === 'webrtc') return;
       if (t === 'unavailable-id' && n < C.LOBBY_SLOTS) {
         // 這個公告位置已被同網路的其他鏡頭使用：換下一個
         killPeer(p);
-        createLobbyPeer(n + 1);
+        createLobbyPeer(e, n + 1);
         return;
       }
+      e.open = false;
       retryLobby(t === 'unavailable-id' ? 60000 : 15000);
     });
   }
 
   function retryLobby(delay) {
-    setPinChip(false);
+    updatePinChip();
     if (lobby.timer) return;
-    lobby.timer = setTimeout(() => {
-      lobby.timer = null;
-      if (lobby.peer) killPeer(lobby.peer);
-      lobby.ip = null; // 重新偵測，網路可能換了
-      startLobby();
-    }, delay);
+    lobby.timer = setTimeout(startLobby, delay); // 重新偵測，網路可能換了
   }
 
   function onLobbyConn(conn) {
@@ -580,7 +590,7 @@
     conn.on('error', cleanup);
     conn.on('open', async () => {
       // 只接受走區域網路的連線（同一個 Wi-Fi／熱點）；來自外網或經過中繼伺服器的一律拒絕
-      const local = await C.connectionIsLocal(conn.peerConnection, lobby.ip);
+      const local = await C.connectionIsLocal(conn.peerConnection, lobby.netIds);
       if (local === false) {
         safeSend(conn, { t: 'notlocal' });
         setTimeout(() => conn.close(), 500);

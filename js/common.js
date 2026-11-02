@@ -175,38 +175,66 @@ window.IPCam = (function () {
   // ---- 同一個 Wi-Fi 自動加入 ----
   const LOBBY_SLOTS = 8;
 
-  // 用 STUN 取得這個網路對外的 IPv4 位址（同一台路由器後面的裝置會相同）
-  function getPublicIPv4(timeoutMs) {
+  function expandV6(a) {
+    a = String(a).split('%')[0].toLowerCase();
+    const halves = a.split('::');
+    if (halves.length > 2) return null;
+    const head = halves[0] ? halves[0].split(':') : [];
+    const tail = halves.length === 2 && halves[1] ? halves[1].split(':') : [];
+    const fill = halves.length === 2 ? 8 - head.length - tail.length : 0;
+    if (fill < 0 || (halves.length === 1 && head.length !== 8)) return null;
+    const all = head.concat(Array(fill).fill('0'), tail);
+    if (all.some((x) => !/^[0-9a-f]{1,4}$/.test(x))) return null;
+    return all.map((x) => parseInt(x, 16).toString(16));
+  }
+  // 位址 → 網路識別：IPv4 用對外位址；IPv6 用前 64 位元（同一個區網的裝置相同）
+  function netIdOf(addr) {
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(addr || '')) return '4:' + addr;
+    const h = addr && addr.includes(':') ? expandV6(addr) : null;
+    return h ? '6:' + h.slice(0, 4).join(':') : null;
+  }
+
+  // 用 STUN 收集這台裝置「所有網路」的對外識別（Wi-Fi、行動網路、IPv4、IPv6 都算）
+  function getNetworkIds(timeoutMs) {
     return new Promise((resolve) => {
+      const ids = new Set();
       let pc;
       let done = false;
-      const finish = (ip) => {
+      let settle = null;
+      const finish = () => {
         if (done) return;
         done = true;
         try { pc.close(); } catch (e) { /* ignore */ }
-        resolve(ip);
+        resolve([...ids].sort());
       };
       try {
-        pc = new RTCPeerConnection({ iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] });
-      } catch (e) { resolve(null); return; }
+        pc = new RTCPeerConnection({ iceServers: [
+          { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+          { urls: 'stun:stun.cloudflare.com:3478' },
+        ] });
+      } catch (e) { resolve([]); return; }
       pc.createDataChannel('ip');
       pc.onicecandidate = (e) => {
-        if (!e.candidate) { finish(null); return; }
+        if (!e.candidate) { finish(); return; }
         const c = e.candidate;
         const parts = (c.candidate || '').split(' ');
         const type = c.type || parts[7];
-        const addr = c.address || parts[4];
-        if (type === 'srflx' && /^\d{1,3}(\.\d{1,3}){3}$/.test(addr || '')) finish(addr);
+        if (type !== 'srflx') return;
+        const id = netIdOf(c.address || parts[4]);
+        if (!id) return;
+        ids.add(id);
+        if (!settle) settle = setTimeout(finish, 3000); // 再多等一下，收集其他網路介面
       };
-      pc.createOffer().then((o) => pc.setLocalDescription(o)).catch(() => finish(null));
-      setTimeout(() => finish(null), timeoutMs || 6000);
+      pc.createOffer().then((o) => pc.setLocalDescription(o)).catch(() => finish());
+      setTimeout(finish, timeoutMs || 7000);
     });
   }
 
   async function sha256Hex(s) {
     return hex(await crypto.subtle.digest('SHA-256', enc(s)));
   }
-  async function lobbyBase(ip) { return 'ipcam-lobby-' + (await sha256Hex('ipcam-lobby:' + ip)).slice(0, 20); }
+  async function lobbyBase(netId) { return 'ipcam-lobby-' + (await sha256Hex('ipcam-lobby:' + netId)).slice(0, 20); }
+  async function netCode(netId) { return (await sha256Hex('ipcam-lobby:' + netId)).slice(0, 4).toUpperCase(); }
   const lobbyPeerId = (base, n) => `${base}-${n}`;
   async function roomTag(key) { return (await sha256Hex('ipcam-tag:' + key)).slice(0, 12); }
   // 配對碼由房間密鑰推算：同一房間的所有鏡頭顯示相同的 4 位數；建立新房間後就會改變
@@ -225,7 +253,7 @@ window.IPCam = (function () {
     return false;
   }
   // 判斷一條連線是否走區域網路：true＝同一個網路、false＝來自外網或經過中繼、null＝無法判斷
-  async function connectionIsLocal(pc, myPublicIp) {
+  async function connectionIsLocal(pc, myNetIds) {
     if (!pc || !pc.getStats) return null;
     try {
       const stats = await pc.getStats();
@@ -243,7 +271,9 @@ window.IPCam = (function () {
       const addr = rc && (rc.address || rc.ip);
       if (!addr) return null;
       if (isPrivateAddr(addr)) return true;
-      if (myPublicIp && addr === myPublicIp) return true; // 同一台路由器回送
+      // 同一台路由器回送（IPv4 對外位址相同），或同一個 IPv6 區網（前 64 位元相同）
+      const id = netIdOf(addr);
+      if (id && (myNetIds || []).includes(id)) return true;
       return false;
     } catch (e) { return null; }
   }
@@ -258,6 +288,6 @@ window.IPCam = (function () {
     MAX_CAMS, MAX_VIEWERS, PROTOCOL, $, peerOptions, newKey, randomId, isValidKey, roomIdFromKey,
     camPeerId, slotFromPeerId, hmacHex, safeEqual, readHashKey, setHashKey, pageUrl, store, qrSvg,
     toast, wake, unlockAudio, beep, envProblem, fmtTime, escapeHtml,
-    LOBBY_SLOTS, getPublicIPv4, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
+    LOBBY_SLOTS, getNetworkIds, netIdOf, netCode, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
   };
 })();

@@ -14,12 +14,12 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <title>家用監視器</title>
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=10">
 </head>
 <body class="page-home">
   <main class="home">
     <header class="hero">
-      <div class="app-icon"><svg class="ic"><use href="icons/sprite.svg?v=9#cam"/></svg></div>
+      <div class="app-icon"><svg class="ic"><use href="icons/sprite.svg?v=10#cam"/></svg></div>
       <h1>家用監視器</h1>
       <p>iPhone 當鏡頭，同一個 Wi-Fi 即時監看</p>
     </header>
@@ -28,19 +28,19 @@
       <h2 class="group-title">開始使用</h2>
       <div class="list">
         <a class="list-row" href="camera.html" id="goCamera">
-          <span class="row-icon blue"><svg class="ic"><use href="icons/sprite.svg?v=9#cam"/></svg></span>
+          <span class="row-icon blue"><svg class="ic"><use href="icons/sprite.svg?v=10#cam"/></svg></span>
           <span class="row-text"><b>這台當鏡頭</b><small id="camDesc">開始拍攝</small></span>
-          <svg class="chev"><use href="icons/sprite.svg?v=9#chev"/></svg>
+          <svg class="chev"><use href="icons/sprite.svg?v=10#chev"/></svg>
         </a>
         <a class="list-row hidden" href="viewer.html" id="goViewer">
-          <span class="row-icon green"><svg class="ic"><use href="icons/sprite.svg?v=9#play"/></svg></span>
+          <span class="row-icon green"><svg class="ic"><use href="icons/sprite.svg?v=10#play"/></svg></span>
           <span class="row-text"><b>繼續監看</b><small>回到上次的房間</small></span>
-          <svg class="chev"><use href="icons/sprite.svg?v=9#chev"/></svg>
+          <svg class="chev"><use href="icons/sprite.svg?v=10#chev"/></svg>
         </a>
         <button type="button" class="list-row" id="goJoin">
-          <span class="row-icon orange"><svg class="ic"><use href="icons/sprite.svg?v=9#wifi"/></svg></span>
+          <span class="row-icon orange"><svg class="ic"><use href="icons/sprite.svg?v=10#wifi"/></svg></span>
           <span class="row-text"><b>加入監看</b><small>輸入配對碼</small></span>
-          <svg class="chev"><use href="icons/sprite.svg?v=9#chev"/></svg>
+          <svg class="chev"><use href="icons/sprite.svg?v=10#chev"/></svg>
         </button>
       </div>
     </section>
@@ -48,8 +48,8 @@
     <section class="group">
       <h2 class="group-title">注意事項</h2>
       <div class="list">
-        <div class="list-row static"><span class="row-icon green"><svg class="ic"><use href="icons/sprite.svg?v=9#bolt"/></svg></span><span class="row-text">鏡頭手機接上充電、螢幕保持開啟</span></div>
-        <div class="list-row static"><span class="row-icon teal"><svg class="ic"><use href="icons/sprite.svg?v=9#shield"/></svg></span><span class="row-text">影像不上傳雲端，需配對碼才能看</span></div>
+        <div class="list-row static"><span class="row-icon green"><svg class="ic"><use href="icons/sprite.svg?v=10#bolt"/></svg></span><span class="row-text">鏡頭手機接上充電、螢幕保持開啟</span></div>
+        <div class="list-row static"><span class="row-icon teal"><svg class="ic"><use href="icons/sprite.svg?v=10#shield"/></svg></span><span class="row-text">影像不上傳雲端，需配對碼才能看</span></div>
       </div>
     </section>
     <p class="footnote">分享 ›「加入主畫面」，像 App 一樣開啟</p>
@@ -60,7 +60,7 @@
     <div class="card">
       <div class="sheet-head">
         <h2 id="joinTitle">加入監看</h2>
-        <button type="button" class="icon-btn" id="btnJoinClose" aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=9#xmark"/></svg></button>
+        <button type="button" class="icon-btn" id="btnJoinClose" aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=10#xmark"/></svg></button>
       </div>
       <div class="join-status"><div class="spinner small-spinner" id="joinSpinner"></div><p id="joinStatus"></p></div>
       <div id="roomList" class="room-list"></div>
@@ -75,15 +75,15 @@
         </div>
       </form>
       <div class="row">
-        <button type="button" id="btnRetry" class="hidden"><svg class="ic"><use href="icons/sprite.svg?v=9#retry"/></svg>重新搜尋</button>
+        <button type="button" id="btnRetry" class="hidden"><svg class="ic"><use href="icons/sprite.svg?v=10#retry"/></svg>重新搜尋</button>
       </div>
     </div>
   </div>
 
-  <script src="vendor/peerjs.min.js?v=9"></script>
-  <script src="js/config.js?v=9"></script>
-  <script src="js/common.js?v=9"></script>
-  <script src="js/join.js?v=9"></script>
+  <script src="vendor/peerjs.min.js?v=10"></script>
+  <script src="js/config.js?v=10"></script>
+  <script src="js/common.js?v=10"></script>
+  <script src="js/join.js?v=10"></script>
   <script>
     (function () {
       function get(n) { try { return JSON.parse(localStorage.getItem('ipcam.' + n)); } catch (e) { return null; } }

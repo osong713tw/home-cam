@@ -48,7 +48,7 @@
       b.className = 'room';
       const names = [...r.names.values()];
       b.innerHTML = '<span class="row-icon blue">' + C.icon('cam') + '</span><span class="row-text"><b></b><small></small></span>' +
-        '<svg class="chev" aria-hidden="true"><use href="icons/sprite.svg?v=9#chev"></use></svg>';
+        '<svg class="chev" aria-hidden="true"><use href="icons/sprite.svg?v=10#chev"></use></svg>';
       b.querySelector('b').textContent = names.join('、');
       b.querySelector('small').textContent = `${names.length} 支鏡頭`;
       b.addEventListener('click', () => choose(r));

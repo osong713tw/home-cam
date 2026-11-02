@@ -13,7 +13,7 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <title>監看｜家用監視器</title>
-  <link rel="stylesheet" href="css/style.css?v=11">
+  <link rel="stylesheet" href="css/style.css?v=12">
 </head>
 <body class="page-viewer theme-dark">
   <main id="grid" class="grid" data-count="0"></main>
@@ -27,19 +27,24 @@
     <div class="chip glass" id="status"><span class="dot wait"></span><span id="statusText">準備中</span></div>
   </header>
 
+  <button type="button" id="alarmBar" class="alarm-bar hidden">
+    <svg class="ic"><use href="icons/sprite.svg?v=12#belloff"/></svg>
+    <span class="row-text"><b>停止警報</b><small id="alarmCams"></small></span>
+  </button>
+
   <nav class="dock glass" aria-label="監看控制">
-    <a class="dock-btn btn" href="index.html" aria-label="回首頁" style="background:transparent"><svg class="ic"><use href="icons/sprite.svg?v=11#house"/></svg></a>
+    <a class="dock-btn btn" href="index.html" aria-label="回首頁" style="background:transparent"><svg class="ic"><use href="icons/sprite.svg?v=12#house"/></svg></a>
     <span class="dock-sep"></span>
-    <button type="button" class="dock-btn" id="btnSound" aria-label="警示音開關"><svg class="ic"><use href="icons/sprite.svg?v=11#bell"/></svg></button>
-    <button type="button" class="dock-btn" id="btnMotion" aria-label="移動偵測設定"><svg class="ic"><use href="icons/sprite.svg?v=11#motion"/></svg></button>
-    <button type="button" class="dock-btn" id="btnLog" aria-label="移動紀錄"><svg class="ic"><use href="icons/sprite.svg?v=11#list"/></svg><span class="badge hidden" id="logBadge">0</span></button>
-    <button type="button" class="dock-btn" id="btnShare" aria-label="邀請其他監看裝置"><svg class="ic"><use href="icons/sprite.svg?v=11#share"/></svg></button>
+    <button type="button" class="dock-btn" id="btnSound" aria-label="警示音開關"><svg class="ic"><use href="icons/sprite.svg?v=12#bell"/></svg></button>
+    <button type="button" class="dock-btn" id="btnMotion" aria-label="移動偵測設定"><svg class="ic"><use href="icons/sprite.svg?v=12#motion"/></svg></button>
+    <button type="button" class="dock-btn" id="btnLog" aria-label="移動紀錄"><svg class="ic"><use href="icons/sprite.svg?v=12#list"/></svg><span class="badge hidden" id="logBadge">0</span></button>
+    <button type="button" class="dock-btn" id="btnShare" aria-label="邀請其他監看裝置"><svg class="ic"><use href="icons/sprite.svg?v=12#share"/></svg></button>
   </nav>
 
   <!-- 開始畫面 -->
   <div id="startOverlay" class="overlay">
     <div class="card">
-      <div class="hero-icon green"><svg class="ic"><use href="icons/sprite.svg?v=11#tv"/></svg></div>
+      <div class="hero-icon green"><svg class="ic"><use href="icons/sprite.svg?v=12#tv"/></svg></div>
       <h1>監看模式</h1>
       <div id="noKey" class="hidden">
         <p class="lead">找不到房間資訊。</p>
@@ -49,9 +54,9 @@
       <div id="hasKey">
         <p class="lead">即時觀看所有鏡頭</p>
         <ul class="features">
-          <li><svg class="ic"><use href="icons/sprite.svg?v=11#plus"/></svg><div><b>點畫面放大</b></div></li>
-          <li><svg class="ic"><use href="icons/sprite.svg?v=11#spk"/></svg><div><b>點喇叭聽聲音</b></div></li>
-          <li><svg class="ic"><use href="icons/sprite.svg?v=11#motion"/></svg><div><b>有動靜會響鈴提醒</b><span>需保持此畫面開啟</span></div></li>
+          <li><svg class="ic"><use href="icons/sprite.svg?v=12#plus"/></svg><div><b>點畫面放大</b></div></li>
+          <li><svg class="ic"><use href="icons/sprite.svg?v=12#spk"/></svg><div><b>點喇叭聽聲音</b></div></li>
+          <li><svg class="ic"><use href="icons/sprite.svg?v=12#motion"/></svg><div><b>有動靜會響鈴提醒</b><span>需保持此畫面開啟</span></div></li>
         </ul>
         <button type="button" class="primary cta" id="btnStart">開始監看</button>
       </div>
@@ -65,7 +70,7 @@
     <div class="card">
       <div class="sheet-head">
         <h2 id="motionTitle">移動偵測</h2>
-        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=11#xmark"/></svg></button>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=12#xmark"/></svg></button>
       </div>
       <label class="switch"><input type="checkbox" id="chkMotion">啟用移動偵測</label>
       <label class="switch"><input type="checkbox" id="chkSound">偵測到時發出警示音</label>
@@ -73,9 +78,20 @@
         <input type="range" id="rngSens" min="1" max="10" step="1">
         <span class="range-labels"><span>低</span><span>高</span></span>
       </label>
-      <p class="small">同一鏡頭 10 秒內不重複提醒</p>
+      <label class="field">警示音長度　<b id="alarmSecVal" style="color:var(--label)">5 秒</b>
+        <input type="range" id="rngAlarmSec" min="1" max="60" step="1">
+        <span class="range-labels"><span>1 秒</span><span>60 秒</span></span>
+      </label>
+      <div class="field">警示音
+        <div class="tabs" id="alarmStyleTabs" style="margin:8px 0 0">
+          <button type="button" class="tab" data-style="beep">嗶嗶聲</button>
+          <button type="button" class="tab" data-style="siren">警笛</button>
+          <button type="button" class="tab" data-style="chime">鈴聲</button>
+        </div>
+      </div>
+      <p class="small">持續有動靜會繼續響；按「停止警報」後暫停 15 秒</p>
       <div class="row">
-        <button type="button" id="btnTestBeep">測試警示音</button>
+        <button type="button" id="btnTestBeep">試聽</button>
         <button type="button" class="primary" data-close>完成</button>
       </div>
     </div>
@@ -86,7 +102,7 @@
     <div class="card">
       <div class="sheet-head">
         <h2 id="logTitle">移動紀錄</h2>
-        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=11#xmark"/></svg></button>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=12#xmark"/></svg></button>
       </div>
       <ul class="log" id="logList"></ul>
       <div class="row">
@@ -101,7 +117,7 @@
     <div class="card">
       <div class="sheet-head">
         <h2 id="shareTitle">邀請裝置</h2>
-        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=11#xmark"/></svg></button>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic"><use href="icons/sprite.svg?v=12#xmark"/></svg></button>
       </div>
       <div class="qr" id="qrBox"></div>
       <p class="note">用「相機」App 掃描即可監看</p>
@@ -110,10 +126,10 @@
     </div>
   </div>
 
-  <script src="vendor/peerjs.min.js?v=11"></script>
-  <script src="vendor/qrcode.js?v=11"></script>
-  <script src="js/config.js?v=11"></script>
-  <script src="js/common.js?v=11"></script>
-  <script src="js/viewer.js?v=11"></script>
+  <script src="vendor/peerjs.min.js?v=12"></script>
+  <script src="vendor/qrcode.js?v=12"></script>
+  <script src="js/config.js?v=12"></script>
+  <script src="js/common.js?v=12"></script>
+  <script src="js/viewer.js?v=12"></script>
 </body>
 </html>

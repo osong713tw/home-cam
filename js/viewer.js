@@ -46,17 +46,24 @@
     motion: store.get('view.motion', true) !== false,
     sound: store.get('view.sound', true) !== false,
     sens: Math.min(10, Math.max(1, parseInt(store.get('view.sens', 5), 10) || 5)),
+    alarmSec: Math.min(60, Math.max(1, parseInt(store.get('view.alarmSec', 5), 10) || 5)),
+    alarmStyle: ['beep', 'siren', 'chime'].includes(store.get('view.alarmStyle', 'beep')) ? store.get('view.alarmStyle', 'beep') : 'beep',
   };
   function saveSettings() {
     store.set('view.motion', settings.motion);
     store.set('view.sound', settings.sound);
     store.set('view.sens', settings.sens);
+    store.set('view.alarmSec', settings.alarmSec);
+    store.set('view.alarmStyle', settings.alarmStyle);
   }
   function renderSettings() {
     el.chkMotion.checked = settings.motion;
     el.chkSound.checked = settings.sound;
     el.rngSens.value = settings.sens;
     el.sensVal.textContent = settings.sens;
+    $('#rngAlarmSec').value = settings.alarmSec;
+    $('#alarmSecVal').textContent = settings.alarmSec + ' 秒';
+    document.querySelectorAll('#alarmStyleTabs .tab').forEach((b) => b.classList.toggle('active', b.dataset.style === settings.alarmStyle));
     C.setIcon(el.btnSound, settings.sound ? 'bell' : 'belloff');
     el.btnSound.classList.toggle('off', !settings.sound);
     el.btnMotion.classList.toggle('off', !settings.motion);
@@ -499,9 +506,36 @@
     if (now - m.lastAlert > 10000) {
       m.lastAlert = now;
       addLog(s);
-      if (settings.sound) C.beep();
+    }
+    // 警報：持續有動靜就重新計時；按過「停止警報」後暫停 15 秒
+    if (settings.sound && now >= alarmMutedUntil) {
+      alarmCams.add((s.info && s.info.name) || `鏡頭 ${s.n}`);
+      if (C.alarm.active) C.alarm.extend(settings.alarmSec);
+      else C.alarm.start(settings.alarmSec, settings.alarmStyle);
+      updateAlarmBar();
     }
   }
+
+  // ---- 警報停止按鈕 ----
+  const alarmBar = $('#alarmBar');
+  const alarmCams = new Set();
+  let alarmMutedUntil = 0;
+  let alarmTesting = false;
+  function updateAlarmBar() {
+    const show = C.alarm.active && !alarmTesting;
+    alarmBar.classList.toggle('hidden', !show);
+    document.body.classList.toggle('alarming', show);
+    $('#alarmCams').textContent = [...alarmCams].join('、') + ' 偵測到移動';
+    el.btnTestBeep.textContent = C.alarm.active && alarmTesting ? '停止試聽' : '試聽';
+  }
+  C.alarm.onchange = (on) => {
+    if (!on) { alarmCams.clear(); alarmTesting = false; }
+    updateAlarmBar();
+  };
+  alarmBar.addEventListener('click', () => {
+    if (!alarmTesting) alarmMutedUntil = Date.now() + 15000;
+    C.alarm.stop();
+  });
 
   setInterval(() => {
     const now = Date.now();
@@ -542,19 +576,38 @@
   });
   el.btnSound.addEventListener('click', () => {
     settings.sound = !settings.sound;
+    if (!settings.sound) C.alarm.stop();
     saveSettings();
     renderSettings();
     C.toast(settings.sound ? '警示音：開' : '警示音：關');
   });
   el.btnMotion.addEventListener('click', () => openModal(el.motionModal));
   el.chkMotion.addEventListener('change', () => { settings.motion = el.chkMotion.checked; saveSettings(); renderSettings(); });
-  el.chkSound.addEventListener('change', () => { settings.sound = el.chkSound.checked; saveSettings(); renderSettings(); });
+  el.chkSound.addEventListener('change', () => { settings.sound = el.chkSound.checked; saveSettings(); renderSettings(); if (!settings.sound) C.alarm.stop(); });
   el.rngSens.addEventListener('input', () => {
     settings.sens = parseInt(el.rngSens.value, 10) || 5;
     saveSettings();
     renderSettings();
   });
-  el.btnTestBeep.addEventListener('click', () => { C.unlockAudio(true); C.beep(); });
+  el.btnTestBeep.addEventListener('click', () => {
+    C.unlockAudio(true);
+    const wasTesting = C.alarm.active && alarmTesting;
+    if (C.alarm.active) C.alarm.stop();
+    if (wasTesting) return;
+    alarmTesting = true;
+    C.alarm.start(Math.min(settings.alarmSec, 3), settings.alarmStyle);
+    updateAlarmBar();
+  });
+  $('#rngAlarmSec').addEventListener('input', (e) => {
+    settings.alarmSec = parseInt(e.target.value, 10) || 5;
+    saveSettings();
+    renderSettings();
+  });
+  document.querySelectorAll('#alarmStyleTabs .tab').forEach((b) => b.addEventListener('click', () => {
+    settings.alarmStyle = b.dataset.style;
+    saveSettings();
+    renderSettings();
+  }));
   el.btnLog.addEventListener('click', () => { unseen = 0; renderLog(); openModal(el.logModal); });
   el.btnClearLog.addEventListener('click', () => { log.length = 0; unseen = 0; renderLog(); });
   C.pinFromKey(key).then((p) => { const x = $('#sharePin'); if (x) x.textContent = p; });

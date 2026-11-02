@@ -365,3 +365,19 @@ input[type=range]::-webkit-slider-thumb {
 .log li + li::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; height: .5px; background: var(--sep); }
 .log .time { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--orange); }
 .log li.muted { color: var(--label2); justify-content: center; }
+
+/* 警報中：停止按鈕（浮在按鈕列上方，蓋過所有視窗） */
+.alarm-bar {
+  position: fixed; z-index: 70; left: 50%; transform: translateX(-50%); bottom: calc(14px + var(--safe-b));
+  min-width: min(320px, calc(100vw - 32px)); min-height: 64px; padding: 10px 26px 10px 20px; gap: 14px; justify-content: flex-start;
+  background: var(--red); color: #fff; border: 1px solid rgba(255, 255, 255, .3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 10px 30px color-mix(in srgb, var(--red) 45%, transparent);
+  animation: alarmPulse 1s ease-in-out infinite;
+}
+.alarm-bar:active { transform: translateX(-50%) scale(.96); }
+.alarm-bar .ic { width: 28px; height: 28px; }
+.alarm-bar .row-text { text-align: left; gap: 0; }
+.alarm-bar b { font-size: 18px; }
+.alarm-bar small { font-size: 13px; color: rgba(255, 255, 255, .85); font-weight: 500; }
+body.alarming .dock { visibility: hidden; }
+@keyframes alarmPulse { 50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 0 0 8px color-mix(in srgb, var(--red) 30%, transparent); } }

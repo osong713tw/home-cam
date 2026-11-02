@@ -141,24 +141,73 @@ window.IPCam = (function () {
       src.start(0);
     } catch (e) { /* ignore */ }
   }
-  function beep() {
-    if (!actx) return;
-    if (actx.state === 'suspended') actx.resume();
-    const t0 = actx.currentTime + 0.02;
-    for (let i = 0; i < 3; i++) {
-      const t = t0 + i * 0.22;
-      const osc = actx.createOscillator();
-      const g = actx.createGain();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(i % 2 ? 1320 : 990, t);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.25, t + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
-      osc.connect(g).connect(actx.destination);
-      osc.start(t);
-      osc.stop(t + 0.18);
+  // ---- 警報：可設定長度與聲音，持續響到時間到或按停止 ----
+  const ALARM_CYCLE = { beep: 0.8, siren: 1.2, chime: 1.6 }; // 每一輪聲音的長度（秒）
+  function tone(t, { type = 'sine', f0, f1, dur, vol, attack = 0.01, sweepAt }) {
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(f0, t);
+    if (f1) {
+      osc.frequency.linearRampToValueAtTime(f1, t + (sweepAt || dur / 2));
+      osc.frequency.linearRampToValueAtTime(f0, t + dur);
     }
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g).connect(actx.destination);
+    osc.start(t);
+    osc.stop(t + dur + 0.02);
+    return osc;
   }
+  const alarm = {
+    timer: null,
+    endAt: 0,
+    style: 'beep',
+    nodes: new Set(),
+    onchange: null,
+    get active() { return this.timer !== null; },
+    start(sec, style) {
+      if (!actx) return;
+      if (actx.state === 'suspended') actx.resume();
+      this.style = ALARM_CYCLE[style] ? style : 'beep';
+      this.endAt = Math.max(this.endAt, Date.now() + sec * 1000);
+      if (this.active) return;
+      this.timer = 0;
+      const cycle = () => {
+        if (Date.now() >= this.endAt) { this.stop(); return; }
+        this.playOnce();
+        this.timer = setTimeout(cycle, ALARM_CYCLE[this.style] * 1000);
+      };
+      cycle();
+      if (this.onchange) this.onchange(true);
+    },
+    extend(sec) { if (this.active) this.endAt = Math.max(this.endAt, Date.now() + sec * 1000); },
+    stop() {
+      const was = this.active;
+      clearTimeout(this.timer);
+      this.timer = null;
+      this.endAt = 0;
+      this.nodes.forEach((n) => { try { n.stop(); } catch (e) { /* ignore */ } });
+      this.nodes.clear();
+      if (was && this.onchange) this.onchange(false);
+    },
+    playOnce() {
+      const t = actx.currentTime + 0.02;
+      const list = [];
+      if (this.style === 'siren') {
+        list.push(tone(t, { type: 'square', f0: 620, f1: 1400, dur: 1.18, vol: 0.14, attack: 0.03, sweepAt: 0.6 }));
+      } else if (this.style === 'chime') {
+        [[1318.5, 0], [1046.5, 0.5]].forEach(([f, d]) => {
+          list.push(tone(t + d, { f0: f, dur: 1.05, vol: 0.32, attack: 0.005 }));
+          list.push(tone(t + d, { f0: f * 2, dur: 0.6, vol: 0.08, attack: 0.005 }));
+        });
+      } else {
+        for (let i = 0; i < 3; i++) list.push(tone(t + i * 0.22, { type: 'square', f0: i % 2 ? 1320 : 990, dur: 0.16, vol: 0.25 }));
+      }
+      list.forEach((o) => { this.nodes.add(o); o.onended = () => this.nodes.delete(o); });
+    },
+  };
 
   // ---- 環境檢查 ----
   function envProblem(needCamera) {
@@ -279,7 +328,7 @@ window.IPCam = (function () {
   }
 
   // ---- 圖示（icons/sprite.svg） ----
-  const ICON_URL = 'icons/sprite.svg?v=11';
+  const ICON_URL = 'icons/sprite.svg?v=12';
   const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="${ICON_URL}#${name}"></use></svg>`;
   function setIcon(elm, name) {
     const u = elm && elm.querySelector('use');
@@ -287,7 +336,7 @@ window.IPCam = (function () {
   }
 
   // ---- 版本更新：避免主畫面 App／瀏覽器一直顯示快取的舊版 ----
-  const APP_VERSION = 11; // 每次發布時與 version.json 一起調整
+  const APP_VERSION = 12; // 每次發布時與 version.json 一起調整
   let updateNotified = false;
   async function latestVersion() {
     try {
@@ -324,7 +373,7 @@ window.IPCam = (function () {
   return {
     MAX_CAMS, MAX_VIEWERS, PROTOCOL, $, peerOptions, newKey, randomId, isValidKey, roomIdFromKey,
     camPeerId, slotFromPeerId, hmacHex, safeEqual, readHashKey, setHashKey, pageUrl, store, qrSvg,
-    toast, wake, unlockAudio, beep, envProblem, fmtTime, escapeHtml,
+    toast, wake, unlockAudio, alarm, envProblem, fmtTime, escapeHtml,
     autoUpdate, icon, setIcon, LOBBY_SLOTS, getNetworkIds, netIdOf, netCode, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
   };
 })();

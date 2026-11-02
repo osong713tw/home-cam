@@ -11,6 +11,29 @@
     1080: { w: 1920, h: 1080, br: 3500000 },
   };
 
+  // iPhone 預設宣告 H.264 Level 3.1（最高只能編到 720p），1080p 時編碼器會停止輸出。
+  // 鏡頭端在套用監看端的回應時把等級提高到 4.0（支援 1080p），監看端的解碼器本來就能處理。
+  function raiseH264Level(sdp) {
+    return sdp.replace(/(profile-level-id=)([0-9a-fA-F]{4})([0-9a-fA-F]{2})/g,
+      (m, k, profile, lvl) => (parseInt(lvl, 16) < 0x28 ? k + profile + '28' : m));
+  }
+  (function patchRemoteAnswer() {
+    const P = window.RTCPeerConnection && window.RTCPeerConnection.prototype;
+    if (!P || P.__ipcamPatched) return;
+    const orig = P.setRemoteDescription;
+    P.setRemoteDescription = function (desc, ...rest) {
+      if (!rest.length && desc && desc.type === 'answer' && typeof desc.sdp === 'string' && /H264/i.test(desc.sdp)) {
+        const sdp = raiseH264Level(desc.sdp);
+        if (sdp !== desc.sdp) {
+          // 若瀏覽器不接受調整後的內容，退回原本的設定，不影響連線
+          return orig.call(this, { type: desc.type, sdp }).catch(() => orig.call(this, desc));
+        }
+      }
+      return orig.call(this, desc, ...rest);
+    };
+    P.__ipcamPatched = true;
+  })();
+
   const el = {
     preview: $('#preview'), status: $('#status'), statusText: $('#statusText'), dot: $('#status .dot'),
     camName: $('#camName'), viewerCount: $('#viewerCount'), btnFlip: $('#btnFlip'), selQuality: $('#selQuality'),
@@ -59,6 +82,7 @@
     name: String(store.get('cam.name', '') || '').slice(0, 20),
     viewers: new Map(),
     switching: false,
+    videoSince: Date.now(), // 最近一次更換影像來源的時間
   };
   el.selQuality.value = state.quality;
   el.inpName.value = state.name;
@@ -204,7 +228,8 @@
       state.stream.addTrack(vt);
       hookTrack(vt);
       await playPreview();
-      state.viewers.forEach((v) => replaceInCall(v, 'video', vt));
+      state.videoSince = Date.now();
+      state.viewers.forEach((v) => { v.stall = 0; replaceInCall(v, 'video', vt); });
       store.set('cam.facing', state.facing);
       store.set('cam.quality', state.quality);
       updateLabels();
@@ -430,12 +455,52 @@
     updateLabels();
   }
 
+  // 畫面傳送檢查：確認實際有送出畫面；1080p 送不出去時自動改回 720p
+  async function checkVideoFlow(v, now) {
+    const pc = v.call && v.call.peerConnection;
+    if (!pc || !['connected', 'completed'].includes(pc.iceConnectionState)) { v.stall = 0; return; }
+    const sender = senderFor(pc, 'video');
+    if (!sender || !sender.getStats || !sender.track || sender.track.readyState !== 'live' || sender.track.muted) {
+      v.stall = 0;
+      return;
+    }
+    let frames = null;
+    try {
+      const stats = await sender.getStats();
+      stats.forEach((r) => {
+        if (r.type !== 'outbound-rtp' || (r.kind || r.mediaType) !== 'video') return;
+        const f = typeof r.framesEncoded === 'number' ? r.framesEncoded : r.framesSent;
+        if (typeof f === 'number') frames = (frames || 0) + f;
+      });
+    } catch (e) { return; }
+    if (frames === null || state.viewers.get(v.id) !== v) return;
+    if (v.lastFrames === undefined || frames !== v.lastFrames || now - state.videoSince < 3000) {
+      v.stall = 0;
+      if (state.quality === '1080' && v.lastFrames !== undefined && frames > v.lastFrames &&
+          now - state.videoSince > 10000) store.del('cam.1080fail');
+    } else {
+      v.stall = (v.stall || 0) + 1;
+    }
+    v.lastFrames = frames;
+    if (v.stall >= 2 && state.quality === '1080' && !state.switching) fallbackFrom1080();
+  }
+
+  function fallbackFrom1080() {
+    const prev = { facing: state.facing, quality: state.quality };
+    state.quality = '720';
+    el.selQuality.value = '720';
+    store.set('cam.1080fail', true);
+    state.viewers.forEach((v) => { v.stall = 0; });
+    replaceVideo(prev).then(() => C.toast('這支 iPhone 無法傳送 1080p 畫面，已自動改回 720p', 6000));
+  }
+
   // 心跳：確認監看端仍在線，清掉離開的連線
   setInterval(() => {
     const now = Date.now();
     state.viewers.forEach((v) => {
       if (v.authed) {
         safeSend(v.conn, { t: 'ping' });
+        checkVideoFlow(v, now);
         if (now - v.lastSeen > 15000) dropViewer(v);
       } else if (now - v.created > 12000) {
         dropViewer(v);
@@ -493,6 +558,11 @@
     const prev = { facing: state.facing, quality: state.quality };
     if (!QUALITY[el.selQuality.value]) return;
     state.quality = el.selQuality.value;
+    if (state.quality === '1080') {
+      C.toast(store.get('cam.1080fail', false)
+        ? '上次 1080p 傳送失敗；若監看端沒有畫面，幾秒後會自動改回 720p'
+        : '1080p 比較耗電、容易發熱，長時間監看建議用 720p', 5000);
+    }
     replaceVideo(prev);
   });
   el.btnMic.addEventListener('click', () => {

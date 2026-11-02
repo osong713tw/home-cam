@@ -20,6 +20,8 @@
     el.startError.classList.remove('hidden');
   }
 
+  C.autoUpdate(() => !el.startOverlay.classList.contains('hidden'));
+
   // ---- 房間密鑰：網址 > 已儲存 ----
   const hashKey = C.readHashKey();
   const savedKey = store.get('view.key', null);

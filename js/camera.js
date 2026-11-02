@@ -51,6 +51,7 @@
     el.startError.classList.remove('hidden');
   }
 
+  C.autoUpdate(() => !el.startOverlay.classList.contains('hidden'));
   const problem = C.envProblem(true);
   if (problem) {
     el.btnStart.disabled = true;

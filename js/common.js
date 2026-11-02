@@ -279,11 +279,40 @@ window.IPCam = (function () {
   }
 
   // ---- 圖示（icons/sprite.svg） ----
-  const ICON_URL = 'icons/sprite.svg?v=8';
+  const ICON_URL = 'icons/sprite.svg?v=9';
   const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="${ICON_URL}#${name}"></use></svg>`;
   function setIcon(elm, name) {
     const u = elm && elm.querySelector('use');
     if (u) u.setAttribute('href', `${ICON_URL}#${name}`);
+  }
+
+  // ---- 版本更新：避免主畫面 App／瀏覽器一直顯示快取的舊版 ----
+  const APP_VERSION = 9; // 每次發布時與 version.json 一起調整
+  let updateNotified = false;
+  async function latestVersion() {
+    try {
+      const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+      const j = await r.json();
+      return typeof j.v === 'number' && j.v > APP_VERSION ? j.v : 0;
+    } catch (e) { return 0; }
+  }
+  // canReload()：目前能不能直接重新載入（拍攝或監看中就不打斷，只提示）
+  function autoUpdate(canReload) {
+    const run = async () => {
+      const v = await latestVersion();
+      if (!v) return;
+      const u = new URL(location.href);
+      if (u.searchParams.get('v') === String(v)) return; // 已嘗試過，避免反覆重新載入
+      if (canReload()) {
+        u.searchParams.set('v', String(v)); // 換網址才能繞過快取
+        location.replace(u.href);
+      } else if (!updateNotified) {
+        updateNotified = true;
+        toast('有新版本，回首頁即可更新', 5000);
+      }
+    };
+    run();
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') run(); });
   }
 
   function fmtTime(d) {
@@ -296,6 +325,6 @@ window.IPCam = (function () {
     MAX_CAMS, MAX_VIEWERS, PROTOCOL, $, peerOptions, newKey, randomId, isValidKey, roomIdFromKey,
     camPeerId, slotFromPeerId, hmacHex, safeEqual, readHashKey, setHashKey, pageUrl, store, qrSvg,
     toast, wake, unlockAudio, beep, envProblem, fmtTime, escapeHtml,
-    icon, setIcon, LOBBY_SLOTS, getNetworkIds, netIdOf, netCode, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
+    autoUpdate, icon, setIcon, LOBBY_SLOTS, getNetworkIds, netIdOf, netCode, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
   };
 })();

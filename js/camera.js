@@ -42,7 +42,8 @@
     btnStart: $('#btnStart'), startError: $('#startError'), joinNote: $('#joinNote'),
     qrModal: $('#qrModal'), qrBox: $('#qrBox'), qrDesc: $('#qrDesc'), btnCopy: $('#btnCopy'),
     settingsModal: $('#settingsModal'), inpName: $('#inpName'), roomCode: $('#roomCode'), slotNo: $('#slotNo'),
-    btnNewRoom: $('#btnNewRoom'),
+    btnNewRoom: $('#btnNewRoom'), pinChip: $('#pinChip'), pinText: $('#pinText'), pinText2: $('#pinText2'),
+    pinNote: $('#pinNote'),
   };
 
   function showStartError(msg) {
@@ -508,6 +509,112 @@
     });
   }, 3000);
 
+  // ---- 同一個 Wi-Fi 自動加入：公告房間，驗證配對碼後交付密鑰 ----
+  const pin = await C.pinFromKey(key);
+  const tag = await C.roomTag(key);
+  el.pinText.textContent = pin;
+  el.pinText2.textContent = pin;
+  const lobby = { peer: null, ip: null, base: null, timer: null, fails: 0, lockouts: 0, lockUntil: 0, conns: new Set() };
+
+  function setPinChip(on) {
+    el.pinChip.classList.toggle('hidden', !on);
+    el.pinNote.textContent = on
+      ? `或用同一個 Wi-Fi 的 iPhone／iPad 打開首頁，點「📺 加入監看」，輸入配對碼 ${pin}。`
+      : '';
+  }
+
+  async function startLobby() {
+    clearTimeout(lobby.timer);
+    lobby.timer = null;
+    if (!lobby.ip) {
+      lobby.ip = await C.getPublicIPv4(6000);
+      if (!lobby.ip) { setPinChip(false); lobby.timer = setTimeout(startLobby, 60000); return; }
+      lobby.base = await C.lobbyBase(lobby.ip);
+    }
+    createLobbyPeer(1);
+  }
+
+  function createLobbyPeer(n) {
+    const p = new window.Peer(C.lobbyPeerId(lobby.base, n), C.peerOptions());
+    lobby.peer = p;
+    p.on('open', () => { if (lobby.peer === p && !p.__dead) setPinChip(true); });
+    p.on('connection', (conn) => onLobbyConn(conn));
+    p.on('call', (c) => { try { c.close(); } catch (e) { /* ignore */ } });
+    p.on('disconnected', () => { if (lobby.peer === p && !p.__dead) retryLobby(15000); });
+    p.on('error', (err) => {
+      if (lobby.peer !== p || p.__dead) return;
+      const t = err && err.type;
+      if (t === 'peer-unavailable' || t === 'webrtc') return;
+      if (t === 'unavailable-id' && n < C.LOBBY_SLOTS) {
+        // 這個公告位置已被同網路的其他鏡頭使用：換下一個
+        killPeer(p);
+        createLobbyPeer(n + 1);
+        return;
+      }
+      retryLobby(t === 'unavailable-id' ? 60000 : 15000);
+    });
+  }
+
+  function retryLobby(delay) {
+    setPinChip(false);
+    if (lobby.timer) return;
+    lobby.timer = setTimeout(() => {
+      lobby.timer = null;
+      if (lobby.peer) killPeer(lobby.peer);
+      lobby.ip = null; // 重新偵測，網路可能換了
+      startLobby();
+    }, delay);
+  }
+
+  function onLobbyConn(conn) {
+    if (lobby.conns.size >= 6) {
+      conn.on('open', () => setTimeout(() => conn.close(), 300));
+      return;
+    }
+    lobby.conns.add(conn);
+    let attempts = 0;
+    let ok = false;
+    const closeTimer = setTimeout(() => conn.close(), 120000);
+    const cleanup = () => { clearTimeout(closeTimer); lobby.conns.delete(conn); };
+    conn.on('close', cleanup);
+    conn.on('error', cleanup);
+    conn.on('open', async () => {
+      // 只接受走區域網路的連線（同一個 Wi-Fi／熱點）；來自外網或經過中繼伺服器的一律拒絕
+      const local = await C.connectionIsLocal(conn.peerConnection, lobby.ip);
+      if (local === false) {
+        safeSend(conn, { t: 'notlocal' });
+        setTimeout(() => conn.close(), 500);
+        return;
+      }
+      ok = true;
+      safeSend(conn, { t: 'hello', tag, name: displayName(), p: C.PROTOCOL });
+    });
+    conn.on('data', (msg) => {
+      if (!ok || !msg || msg.t !== 'join') return;
+      const now = Date.now();
+      if (now < lobby.lockUntil) {
+        safeSend(conn, { t: 'locked', seconds: Math.ceil((lobby.lockUntil - now) / 1000) });
+        return;
+      }
+      if (typeof msg.pin === 'string' && C.safeEqual(msg.pin, pin)) {
+        lobby.fails = 0;
+        lobby.lockouts = 0;
+        safeSend(conn, { t: 'key', key });
+        C.toast('有裝置用配對碼加入了');
+        setTimeout(() => conn.close(), 3000);
+        return;
+      }
+      lobby.fails++;
+      attempts++;
+      // 每錯 5 次鎖定，鎖定時間逐次加倍（1、2、4、8… 分鐘）
+      if (lobby.fails % 5 === 0) lobby.lockUntil = now + 60000 * Math.pow(2, lobby.lockouts++);
+      C.toast('有裝置輸入了錯誤的配對碼');
+      const locked = lobby.lockUntil > now ? Math.ceil((lobby.lockUntil - now) / 1000) : 0;
+      safeSend(conn, { t: 'bad', left: 5 - (lobby.fails % 5), locked });
+      if (attempts >= 5) setTimeout(() => conn.close(), 500);
+    });
+  }
+
   // ---- 介面 ----
   function openModal(m) { m.classList.remove('hidden'); }
   function closeModal(m) { m.classList.add('hidden'); }
@@ -613,11 +720,13 @@
     order = slotOrder();
     orderIdx = 0;
     createPeer(order[0]);
+    startLobby();
     renderQR();
     openModal(el.qrModal);
   });
 
   window.addEventListener('pagehide', () => {
     try { if (state.peer) state.peer.destroy(); } catch (e) { /* ignore */ }
+    try { if (lobby.peer) lobby.peer.destroy(); } catch (e) { /* ignore */ }
   });
 })();

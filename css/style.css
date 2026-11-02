@@ -146,3 +146,16 @@ button.off, .icon.off { opacity: .55; }
 .log { list-style: none; padding: 0; margin: 0; max-height: 50vh; overflow-y: auto; }
 .log li { padding: 8px 4px; border-bottom: 1px solid var(--line); font-size: 15px; }
 .log .time { font-variant-numeric: tabular-nums; color: var(--wait); margin-right: 10px; }
+
+/* ---- 加入監看 ---- */
+button.choice { width: 100%; text-align: left; font: inherit; min-height: 0; }
+.join-status { display: flex; align-items: center; gap: 10px; }
+.join-status p { margin: 6px 0; font-size: 15px; }
+.small-spinner { width: 22px; height: 22px; border-width: 3px; flex: none; }
+.room-list { display: grid; gap: 10px; margin: 10px 0; }
+.room { display: block; width: 100%; text-align: left; padding: 14px; border-radius: 14px; }
+.room b { display: block; font-size: 17px; }
+.room span { color: var(--muted); font-size: 13px; }
+.pin-input { display: block; width: 100%; margin: 10px 0 4px; text-align: center; font-size: 34px; letter-spacing: 14px;
+  font-variant-numeric: tabular-nums; color: var(--text); background: #0f1216; border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+.pin-note { color: var(--wait); }

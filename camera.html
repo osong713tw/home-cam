@@ -22,6 +22,7 @@
     <div class="chip" id="status"><span class="dot wait"></span><span id="statusText">準備中</span></div>
     <div class="chip" id="camName">鏡頭</div>
     <div class="chip" id="viewerCount" title="正在監看的裝置數">👁 0</div>
+    <div class="chip hidden" id="pinChip" title="同一個 Wi-Fi 的裝置在首頁按「加入監看」輸入這組配對碼">🔑 <b id="pinText">----</b></div>
   </header>
 
   <nav class="toolbar" id="toolbar">
@@ -69,6 +70,7 @@
       </div>
       <div class="qr" id="qrBox"></div>
       <p class="note" id="qrDesc"></p>
+      <p class="note pin-note" id="pinNote"></p>
       <div class="row">
         <button type="button" id="btnCopy">複製連結</button>
         <button type="button" class="primary" data-close>完成</button>
@@ -83,12 +85,12 @@
       <label class="field">這支鏡頭的名稱
         <input type="text" id="inpName" maxlength="20" placeholder="例如：客廳、嬰兒房">
       </label>
-      <p class="note">房間代號：<b id="roomCode">----</b>　鏡頭位置：<b id="slotNo">-</b></p>
+      <p class="note">房間代號：<b id="roomCode">----</b>　鏡頭位置：<b id="slotNo">-</b>　配對碼：<b id="pinText2">----</b></p>
       <div class="row">
         <button type="button" class="danger" id="btnNewRoom">建立新房間</button>
         <button type="button" class="primary" data-close>完成</button>
       </div>
-      <p class="small">建立新房間會產生新的密鑰，舊的 QR Code 全部失效，所有監看端與其他鏡頭需要重新掃描。</p>
+      <p class="small">建立新房間會產生新的密鑰與配對碼，舊的 QR Code 與配對碼全部失效，所有監看端與其他鏡頭需要重新加入。</p>
     </div>
   </div>
 

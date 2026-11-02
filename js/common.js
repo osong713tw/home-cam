@@ -172,6 +172,82 @@ window.IPCam = (function () {
     return null;
   }
 
+  // ---- 同一個 Wi-Fi 自動加入 ----
+  const LOBBY_SLOTS = 8;
+
+  // 用 STUN 取得這個網路對外的 IPv4 位址（同一台路由器後面的裝置會相同）
+  function getPublicIPv4(timeoutMs) {
+    return new Promise((resolve) => {
+      let pc;
+      let done = false;
+      const finish = (ip) => {
+        if (done) return;
+        done = true;
+        try { pc.close(); } catch (e) { /* ignore */ }
+        resolve(ip);
+      };
+      try {
+        pc = new RTCPeerConnection({ iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] });
+      } catch (e) { resolve(null); return; }
+      pc.createDataChannel('ip');
+      pc.onicecandidate = (e) => {
+        if (!e.candidate) { finish(null); return; }
+        const c = e.candidate;
+        const parts = (c.candidate || '').split(' ');
+        const type = c.type || parts[7];
+        const addr = c.address || parts[4];
+        if (type === 'srflx' && /^\d{1,3}(\.\d{1,3}){3}$/.test(addr || '')) finish(addr);
+      };
+      pc.createOffer().then((o) => pc.setLocalDescription(o)).catch(() => finish(null));
+      setTimeout(() => finish(null), timeoutMs || 6000);
+    });
+  }
+
+  async function sha256Hex(s) {
+    return hex(await crypto.subtle.digest('SHA-256', enc(s)));
+  }
+  async function lobbyBase(ip) { return 'ipcam-lobby-' + (await sha256Hex('ipcam-lobby:' + ip)).slice(0, 20); }
+  const lobbyPeerId = (base, n) => `${base}-${n}`;
+  async function roomTag(key) { return (await sha256Hex('ipcam-tag:' + key)).slice(0, 12); }
+  // 配對碼由房間密鑰推算：同一房間的所有鏡頭顯示相同的 4 位數；建立新房間後就會改變
+  async function pinFromKey(key) {
+    const h = await hmacHex(key, 'ipcam-pin');
+    return String(parseInt(h.slice(0, 8), 16) % 10000).padStart(4, '0');
+  }
+
+  function isPrivateAddr(a) {
+    if (!a) return false;
+    a = String(a).toLowerCase();
+    if (a.endsWith('.local')) return true;
+    if (/^10\./.test(a) || /^192\.168\./.test(a) || /^169\.254\./.test(a)) return true;
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(a)) return true;
+    if (/^f[cd][0-9a-f]{2}:/.test(a) || /^fe80:/.test(a)) return true;
+    return false;
+  }
+  // 判斷一條連線是否走區域網路：true＝同一個網路、false＝來自外網或經過中繼、null＝無法判斷
+  async function connectionIsLocal(pc, myPublicIp) {
+    if (!pc || !pc.getStats) return null;
+    try {
+      const stats = await pc.getStats();
+      let selectedId = null;
+      stats.forEach((r) => { if (r.type === 'transport' && r.selectedCandidatePairId) selectedId = r.selectedCandidatePairId; });
+      let pair = null;
+      stats.forEach((r) => {
+        if (r.type !== 'candidate-pair') return;
+        if (selectedId ? r.id === selectedId : (r.state === 'succeeded' && (r.nominated || r.selected))) pair = pair || r;
+      });
+      if (!pair) return null;
+      const rc = stats.get(pair.remoteCandidateId);
+      const lc = stats.get(pair.localCandidateId);
+      if ((rc && rc.candidateType === 'relay') || (lc && lc.candidateType === 'relay')) return false;
+      const addr = rc && (rc.address || rc.ip);
+      if (!addr) return null;
+      if (isPrivateAddr(addr)) return true;
+      if (myPublicIp && addr === myPublicIp) return true; // 同一台路由器回送
+      return false;
+    } catch (e) { return null; }
+  }
+
   function fmtTime(d) {
     const p = (n) => String(n).padStart(2, '0');
     return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
@@ -182,5 +258,6 @@ window.IPCam = (function () {
     MAX_CAMS, MAX_VIEWERS, PROTOCOL, $, peerOptions, newKey, randomId, isValidKey, roomIdFromKey,
     camPeerId, slotFromPeerId, hmacHex, safeEqual, readHashKey, setHashKey, pageUrl, store, qrSvg,
     toast, wake, unlockAudio, beep, envProblem, fmtTime, escapeHtml,
+    LOBBY_SLOTS, getPublicIPv4, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
   };
 })();

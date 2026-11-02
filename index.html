@@ -18,7 +18,7 @@
 <body class="page-home">
   <div class="home">
     <h1>📹 家用監視器</h1>
-    <p class="note">用 iPhone 當監視鏡頭，其他 iPhone／iPad 掃描 QR Code 就能即時監看。</p>
+    <p class="note">用 iPhone 當監視鏡頭，其他 iPhone／iPad 輸入配對碼或掃描 QR Code，就能即時監看。</p>
 
     <div class="choices">
       <a class="choice" href="camera.html" id="goCamera">
@@ -27,15 +27,41 @@
       </a>
       <a class="choice hidden" href="viewer.html" id="goViewer">
         <b>📺 繼續監看</b>
-        <span>回到上次掃描過的房間。</span>
+        <span>回到上次加入過的房間。</span>
       </a>
+      <button type="button" class="choice" id="goJoin">
+        <b>📺 加入監看</b>
+        <span>自動找出同一個 Wi-Fi 上的鏡頭，輸入配對碼就能看，不用掃 QR Code。</span>
+      </button>
+    </div>
+
+    <div id="joinModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+      <div class="card">
+        <h2 id="joinTitle">加入監看</h2>
+        <div class="join-status"><div class="spinner small-spinner" id="joinSpinner"></div><p id="joinStatus"></p></div>
+        <div id="roomList" class="room-list"></div>
+        <form id="pinForm" class="hidden" autocomplete="off">
+          <p class="note">房間：<b id="pinRoom"></b></p>
+          <input type="text" id="pinInput" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+                 placeholder="····" aria-label="4 位數配對碼" autocomplete="off">
+          <p class="error" id="pinError"></p>
+          <div class="row">
+            <button type="button" id="btnPinBack">返回</button>
+            <button type="submit" class="primary">加入</button>
+          </div>
+        </form>
+        <div class="row">
+          <button type="button" id="btnRetry" class="hidden">重新搜尋</button>
+          <button type="button" id="btnJoinClose">關閉</button>
+        </div>
+      </div>
     </div>
 
     <section>
       <h2>怎麼使用</h2>
       <ol>
         <li>在要當鏡頭的 iPhone 上用 Safari 開這個網頁，點「這台當鏡頭」並允許相機與麥克風。</li>
-        <li>用其他 iPhone／iPad 的「相機」App 掃描畫面上的「📺 監看」QR Code。</li>
+        <li>其他 iPhone／iPad 連上<strong>同一個 Wi-Fi</strong>，打開這個網頁點「📺 加入監看」，輸入鏡頭畫面上方的 🔑 配對碼；或用「相機」App 掃描「📺 監看」QR Code。</li>
         <li>要再加一支鏡頭，就用那支 iPhone 掃描「📷 加入其他鏡頭」QR Code。</li>
       </ol>
     </section>
@@ -50,6 +76,10 @@
     </section>
     <p class="small" style="text-align:center;margin-top:18px">小技巧：在 Safari 點「分享 › 加入主畫面」，之後就能像 App 一樣開啟。</p>
   </div>
+  <script src="vendor/peerjs.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/join.js"></script>
   <script>
     (function () {
       function get(n) { try { return JSON.parse(localStorage.getItem('ipcam.' + n)); } catch (e) { return null; } }

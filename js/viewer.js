@@ -553,6 +553,7 @@
   el.btnTestBeep.addEventListener('click', () => { C.unlockAudio(true); C.beep(); });
   el.btnLog.addEventListener('click', () => { unseen = 0; renderLog(); openModal(el.logModal); });
   el.btnClearLog.addEventListener('click', () => { log.length = 0; unseen = 0; renderLog(); });
+  C.pinFromKey(key).then((p) => { const x = $('#sharePin'); if (x) x.textContent = p; });
   el.btnShare.addEventListener('click', () => {
     el.qrBox.innerHTML = C.qrSvg(C.pageUrl('viewer.html', key));
     openModal(el.shareModal);

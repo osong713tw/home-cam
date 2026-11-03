@@ -77,7 +77,7 @@
       n, id: C.camPeerId(room, n), state: 'idle', gen: 0, conn: null, call: null, peerId: null,
       authSent: false, lastSeen: 0, deadline: 0, nextProbe: Date.now() + n * 200, info: null,
       everSeen: false, tile: null, audioOn: false, discTimer: null,
-      motion: { prev: null, prevMean: 0, hits: 0, suppressUntil: 0, until: 0, lastAlert: 0 },
+      motion: { frames: [], hits: 0, suppressUntil: 0, until: 0, lastAlert: 0 },
     });
   }
   const slotById = (id) => slots.find((s) => s.id === id);
@@ -454,17 +454,12 @@
   });
 
   // ---- 移動偵測（在監看端計算，不增加鏡頭手機的負擔） ----
-  const MW = 64;
-  const MH = 48;
   const canvas = document.createElement('canvas');
-  canvas.width = MW;
-  canvas.height = MH;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  // 靈敏度 1~10 → 畫面變動比例門檻（約 30% ~ 0.3%）
-  const sensToRatio = (n) => 0.3 * Math.pow(0.6, n - 1);
+  let motionLevel = { active: 0, need: 0 }; // 給設定畫面的即時指示
 
   function resetMotion(s) {
-    s.motion.prev = null;
+    s.motion.frames = [];
     s.motion.hits = 0;
     s.motion.suppressUntil = Date.now() + 3000; // 等待自動曝光穩定
   }
@@ -472,10 +467,18 @@
   function analyze(s, now) {
     const v = s.tile.video;
     if (v.readyState < 2 || !v.videoWidth) return;
-    try { ctx.drawImage(v, 0, 0, MW, MH); } catch (e) { return; }
+    // 依影像比例縮小到寬 128 像素（高度取 8 的倍數）
+    const W = C.MOTION_W;
+    const H = Math.min(256, Math.max(C.MOTION_BLOCK, Math.round((W * v.videoHeight) / v.videoWidth / C.MOTION_BLOCK) * C.MOTION_BLOCK));
+    if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
+    try {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(v, 0, 0, W, H);
+    } catch (e) { return; }
     let data;
-    try { data = ctx.getImageData(0, 0, MW, MH).data; } catch (e) { return; }
-    const N = MW * MH;
+    try { data = ctx.getImageData(0, 0, W, H).data; } catch (e) { return; }
+    const N = W * H;
     const g = new Uint8Array(N);
     let sum = 0;
     for (let i = 0, j = 0; i < N; i++, j += 4) {
@@ -483,18 +486,23 @@
       g[i] = y;
       sum += y;
     }
-    const mean = sum / N;
     const m = s.motion;
-    if (!m.prev || now < m.suppressUntil) {
-      m.prev = g; m.prevMean = mean; m.hits = 0;
+    if (!m.frames) m.frames = [];
+    const cur = { g, mean: sum / N, W, H };
+    if (now < m.suppressUntil || (m.frames.length && m.frames[0].H !== H)) {
+      m.frames = [cur];
+      m.hits = 0;
       return;
     }
-    const dm = mean - m.prevMean; // 扣掉整體亮度變化（例如自動曝光）
-    let changed = 0;
-    for (let i = 0; i < N; i++) if (Math.abs(g[i] - m.prev[i] - dm) > 28) changed++;
-    m.prev = g;
-    m.prevMean = mean;
-    if (changed / N > sensToRatio(settings.sens)) m.hits++;
+    m.frames.push(cur);
+    if (m.frames.length < 3) return;
+    const ref = m.frames.shift(); // 和約 1 秒前的畫面比較，慢慢移動也看得出來
+    const { need, frac } = C.motionParams(settings.sens);
+    const active = C.motionBlocks(ref.g, g, W, H, ref.mean, cur.mean, frac);
+    // 同一輪取所有鏡頭中變動最多的，顯示在設定畫面
+    if (motionLevel.at !== now) motionLevel = { active, need, at: now };
+    else motionLevel.active = Math.max(motionLevel.active, active);
+    if (active >= need) m.hits++;
     else m.hits = 0;
     if (m.hits >= 2) onMotion(s, now);
   }
@@ -508,7 +516,8 @@
       addLog(s);
     }
     // 警報：持續有動靜就重新計時；按過「停止警報」後暫停 15 秒
-    if (settings.sound && now >= alarmMutedUntil) {
+    // 調整移動偵測設定時不響警報（看即時指示調整靈敏度即可）
+    if (settings.sound && now >= alarmMutedUntil && el.motionModal.classList.contains('hidden')) {
       alarmCams.add((s.info && s.info.name) || `鏡頭 ${s.n}`);
       if (C.alarm.active) C.alarm.extend(settings.alarmSec);
       else C.alarm.start(settings.alarmSec, settings.alarmStyle);
@@ -543,6 +552,15 @@
       if (!s.tile) continue;
       if (s.tile.classList.contains('motion') && now > s.motion.until) s.tile.classList.remove('motion');
       if (settings.motion && started && s.state === 'live' && document.visibilityState === 'visible') analyze(s, now);
+    }
+    if (!el.motionModal.classList.contains('hidden')) {
+      const lv = $('#motionLevel');
+      if (lv) {
+        lv.textContent = !settings.motion ? '移動偵測已關閉'
+          : (now - (motionLevel.at || 0) > 1500 ? '等待畫面…'
+            : `目前變動 ${motionLevel.active} 格／需要 ${motionLevel.need} 格才提醒`);
+        lv.classList.toggle('hot', motionLevel.active >= motionLevel.need && now - (motionLevel.at || 0) <= 1500);
+      }
     }
   }, 500);
 

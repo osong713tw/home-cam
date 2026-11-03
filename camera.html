@@ -13,7 +13,7 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <title>鏡頭｜家用監視器</title>
-  <link rel="stylesheet" href="css/style.css?v=13">
+  <link rel="stylesheet" href="css/style.css?v=14">
 </head>
 <body class="page-camera theme-dark">
   <video id="preview" autoplay playsinline muted></video>
@@ -21,12 +21,12 @@
   <header class="topbar">
     <div class="chip glass" id="status"><span class="dot wait"></span><span id="statusText">準備中</span></div>
     <div class="chip glass" id="camName">鏡頭</div>
-    <div class="chip glass" id="viewerCount" title="正在監看的裝置數"><svg class="ic"><use href="icons/sprite.svg?v=13#eye"/></svg><span id="viewerNum">0</span></div>
-    <div class="chip glass hidden" id="pinChip" title="配對碼"><svg class="ic"><use href="icons/sprite.svg?v=13#key"/></svg><b id="pinText">----</b></div>
+    <div class="chip glass" id="viewerCount" title="正在監看的裝置數"><svg class="ic"><use href="icons/sprite.svg?v=14#eye"/></svg><span id="viewerNum">0</span></div>
+    <div class="chip glass hidden" id="pinChip" title="配對碼"><svg class="ic"><use href="icons/sprite.svg?v=14#key"/></svg><b id="pinText">----</b></div>
   </header>
 
   <nav class="dock glass" id="toolbar" aria-label="鏡頭控制">
-    <button type="button" class="dock-btn" id="btnFlip" aria-label="切換前後鏡頭"><svg class="ic"><use href="icons/sprite.svg?v=13#flip"/></svg></button>
+    <button type="button" class="dock-btn" id="btnFlip" aria-label="切換前後鏡頭"><svg class="ic"><use href="icons/sprite.svg?v=14#flip"/></svg></button>
     <label class="dock-pill" for="selQuality">
       <select id="selQuality" aria-label="畫質">
         <option value="480">480p</option>
@@ -34,11 +34,11 @@
         <option value="1080">1080p</option>
       </select>
     </label>
-    <button type="button" class="dock-btn" id="btnMic" aria-label="麥克風"><svg class="ic"><use href="icons/sprite.svg?v=13#mic"/></svg></button>
-    <button type="button" class="dock-btn" id="btnBlack" aria-label="黑畫面省電"><svg class="ic"><use href="icons/sprite.svg?v=13#moon"/></svg></button>
+    <button type="button" class="dock-btn" id="btnMic" aria-label="麥克風"><svg class="ic"><use href="icons/sprite.svg?v=14#mic"/></svg></button>
+    <button type="button" class="dock-btn" id="btnBlack" aria-label="黑畫面省電"><svg class="ic"><use href="icons/sprite.svg?v=14#moon"/></svg></button>
     <span class="dock-sep"></span>
-    <button type="button" class="dock-btn" id="btnQR" aria-label="QR Code 與配對碼"><svg class="ic"><use href="icons/sprite.svg?v=13#qr"/></svg></button>
-    <button type="button" class="dock-btn" id="btnSettings" aria-label="設定"><svg class="ic"><use href="icons/sprite.svg?v=13#gear"/></svg></button>
+    <button type="button" class="dock-btn" id="btnQR" aria-label="QR Code 與配對碼"><svg class="ic"><use href="icons/sprite.svg?v=14#qr"/></svg></button>
+    <button type="button" class="dock-btn" id="btnSettings" aria-label="設定"><svg class="ic"><use href="icons/sprite.svg?v=14#gear"/></svg></button>
   </nav>
 
   <div id="blackout" class="blackout hidden">
@@ -48,14 +48,14 @@
   <!-- 開始畫面 -->
   <div id="startOverlay" class="overlay">
     <div class="card">
-      <div class="hero-icon"><svg class="ic"><use href="icons/sprite.svg?v=13#cam"/></svg></div>
+      <div class="hero-icon"><svg class="ic"><use href="icons/sprite.svg?v=14#cam"/></svg></div>
       <h1>鏡頭模式</h1>
       <p class="lead">這支 iPhone 將成為監視鏡頭</p>
       <p id="joinNote" class="note hidden" style="text-align:center">加入既有的房間</p>
       <ul class="features">
-        <li><svg class="ic"><use href="icons/sprite.svg?v=13#bolt"/></svg><div><b>接上充電器</b></div></li>
-        <li><svg class="ic"><use href="icons/sprite.svg?v=13#lock"/></svg><div><b>自動鎖定設為「永不」</b></div></li>
-        <li><svg class="ic"><use href="icons/sprite.svg?v=13#phone"/></svg><div><b>停留在這個畫面</b><span>鎖屏或切換 App 會中斷拍攝</span></div></li>
+        <li><svg class="ic"><use href="icons/sprite.svg?v=14#bolt"/></svg><div><b>接上充電器</b></div></li>
+        <li><svg class="ic"><use href="icons/sprite.svg?v=14#lock"/></svg><div><b>自動鎖定設為「永不」</b></div></li>
+        <li><svg class="ic"><use href="icons/sprite.svg?v=14#phone"/></svg><div><b>停留在這個畫面</b><span>鎖屏或切換 App 會中斷拍攝</span></div></li>
       </ul>
       <button type="button" class="primary cta" id="btnStart">開始拍攝</button>
       <p id="startError" class="error hidden"></p>
@@ -68,7 +68,7 @@
     <div class="card">
       <div class="sheet-head">
         <h2 id="qrTitle">邀請裝置</h2>
-        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic" style="pointer-events:none"><use href="icons/sprite.svg?v=13#xmark"/></svg></button>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic" style="pointer-events:none"><use href="icons/sprite.svg?v=14#xmark"/></svg></button>
       </div>
       <div class="tabs">
         <button type="button" class="tab active" data-tab="view">監看</button>
@@ -89,7 +89,7 @@
     <div class="card">
       <div class="sheet-head">
         <h2 id="setTitle">鏡頭設定</h2>
-        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic" style="pointer-events:none"><use href="icons/sprite.svg?v=13#xmark"/></svg></button>
+        <button type="button" class="icon-btn" data-close aria-label="關閉"><svg class="ic" style="pointer-events:none"><use href="icons/sprite.svg?v=14#xmark"/></svg></button>
       </div>
       <label class="field">鏡頭名稱
         <input type="text" id="inpName" maxlength="20" placeholder="例如：客廳、嬰兒房">
@@ -104,10 +104,10 @@
     </div>
   </div>
 
-  <script src="vendor/peerjs.min.js?v=13"></script>
-  <script src="vendor/qrcode.js?v=13"></script>
-  <script src="js/config.js?v=13"></script>
-  <script src="js/common.js?v=13"></script>
-  <script src="js/camera.js?v=13"></script>
+  <script src="vendor/peerjs.min.js?v=14"></script>
+  <script src="vendor/qrcode.js?v=14"></script>
+  <script src="js/config.js?v=14"></script>
+  <script src="js/common.js?v=14"></script>
+  <script src="js/camera.js?v=14"></script>
 </body>
 </html>

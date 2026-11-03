@@ -209,6 +209,35 @@ window.IPCam = (function () {
     },
   };
 
+  // ---- 移動偵測核心：把畫面切成 8×8 像素的小格，數有幾格明顯變動 ----
+  // 這樣小物體（例如嬰兒）在畫面中只佔一小塊也偵測得到，不受「佔整個畫面幾 %」限制
+  const MOTION_W = 128;
+  const MOTION_BLOCK = 8;
+  // 靈敏度 1～10 →［需要幾格變動, 每格至少幾 % 像素改變］
+  const SENS_TABLE = [null, [14, 0.35], [9, 0.3], [6, 0.28], [4, 0.25], [2, 0.22], [2, 0.18], [1, 0.2], [1, 0.15], [1, 0.11], [1, 0.08]];
+  function motionParams(sens) {
+    const r = SENS_TABLE[Math.min(10, Math.max(1, Math.round(sens) || 5))];
+    return { need: r[0], frac: r[1] };
+  }
+  // a、b：W×H 灰階畫面；ma、mb：平均亮度（扣掉整體亮度變化，避免自動曝光誤判）
+  function motionBlocks(a, b, W, H, ma, mb, frac) {
+    const B = MOTION_BLOCK;
+    const dm = mb - ma;
+    const minPx = Math.ceil(B * B * frac);
+    let active = 0;
+    for (let by = 0; by + B <= H; by += B) {
+      for (let bx = 0; bx + B <= W; bx += B) {
+        let c = 0;
+        for (let y = by; y < by + B; y++) {
+          let i = y * W + bx;
+          for (let x = 0; x < B; x++, i++) if (Math.abs(b[i] - a[i] - dm) > 20) c++;
+        }
+        if (c >= minPx) active++;
+      }
+    }
+    return active;
+  }
+
   // ---- 環境檢查 ----
   function envProblem(needCamera) {
     if (!window.isSecureContext) return '這個網頁必須用 https:// 開啟，相機與加密功能才能使用。';
@@ -328,7 +357,7 @@ window.IPCam = (function () {
   }
 
   // ---- 圖示（icons/sprite.svg） ----
-  const ICON_URL = 'icons/sprite.svg?v=13';
+  const ICON_URL = 'icons/sprite.svg?v=14';
   const icon = (name, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="${ICON_URL}#${name}"></use></svg>`;
   function setIcon(elm, name) {
     const u = elm && elm.querySelector('use');
@@ -336,7 +365,7 @@ window.IPCam = (function () {
   }
 
   // ---- 版本更新：避免主畫面 App／瀏覽器一直顯示快取的舊版 ----
-  const APP_VERSION = 13; // 每次發布時與 version.json 一起調整
+  const APP_VERSION = 14; // 每次發布時與 version.json 一起調整
   let updateNotified = false;
   async function latestVersion() {
     try {
@@ -374,6 +403,6 @@ window.IPCam = (function () {
     MAX_CAMS, MAX_VIEWERS, PROTOCOL, $, peerOptions, newKey, randomId, isValidKey, roomIdFromKey,
     camPeerId, slotFromPeerId, hmacHex, safeEqual, readHashKey, setHashKey, pageUrl, store, qrSvg,
     toast, wake, unlockAudio, alarm, envProblem, fmtTime, escapeHtml,
-    autoUpdate, icon, setIcon, LOBBY_SLOTS, getNetworkIds, netIdOf, netCode, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
+    autoUpdate, icon, setIcon, MOTION_W, MOTION_BLOCK, motionParams, motionBlocks, LOBBY_SLOTS, getNetworkIds, netIdOf, netCode, lobbyBase, lobbyPeerId, roomTag, pinFromKey, connectionIsLocal,
   };
 })();

@@ -381,3 +381,5 @@ input[type=range]::-webkit-slider-thumb {
 .alarm-bar small { font-size: 13px; color: rgba(255, 255, 255, .85); font-weight: 500; }
 body.alarming .dock { visibility: hidden; }
 @keyframes alarmPulse { 50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 0 0 8px color-mix(in srgb, var(--red) 30%, transparent); } }
+.motion-level { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 12px; background: var(--fill); font-size: 14px; color: var(--label2); font-variant-numeric: tabular-nums; }
+.motion-level.hot { color: #fff; background: var(--red); }

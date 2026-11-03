@@ -46,14 +46,14 @@
     motion: store.get('view.motion', true) !== false,
     sound: store.get('view.sound', true) !== false,
     sens: Math.min(10, Math.max(1, parseInt(store.get('view.sens', 5), 10) || 5)),
-    alarmSec: Math.min(60, Math.max(1, parseInt(store.get('view.alarmSec', 5), 10) || 5)),
+    alarmSec: Math.min(60, Math.max(1, parseInt(store.get('view.alarmSecs', 1), 10) || 1)),
     alarmStyle: ['beep', 'siren', 'chime'].includes(store.get('view.alarmStyle', 'beep')) ? store.get('view.alarmStyle', 'beep') : 'beep',
   };
   function saveSettings() {
     store.set('view.motion', settings.motion);
     store.set('view.sound', settings.sound);
     store.set('view.sens', settings.sens);
-    store.set('view.alarmSec', settings.alarmSec);
+    store.set('view.alarmSecs', settings.alarmSec);
     store.set('view.alarmStyle', settings.alarmStyle);
   }
   function renderSettings() {
@@ -599,7 +599,7 @@
     updateAlarmBar();
   });
   $('#rngAlarmSec').addEventListener('input', (e) => {
-    settings.alarmSec = parseInt(e.target.value, 10) || 5;
+    settings.alarmSec = parseInt(e.target.value, 10) || 1;
     saveSettings();
     renderSettings();
   });
